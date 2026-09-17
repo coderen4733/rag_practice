@@ -1,0 +1,43 @@
+# 가상환경
+**/.venv/
+**/venv/
+**/env/
+
+# 환경 변수 (보안)
+**/.env
+**/.env.*
+
+# 클로드
+**/.claude/
+
+# 파이썬 캐시
+**/*.py[cod]
+**/__pycache__/
+**/*.so
+
+# 린트/타입체크 캐시 (ruff, mypy) - 추가됨
+**/.ruff_cache/
+**/.mypy_cache/
+
+# 테스트/커버리지 캐시 (pytest 도입 대비) - 추가됨
+**/.pytest_cache/
+**/.coverage
+**/htmlcov/
+
+# 로그 파일 - 추가됨
+**/*.log
+
+# IDE 설정
+**/.vscode/
+**/.idea/
+
+## 의존성
+**/node_modules/
+**/dist/
+**/.next/
+**/out/
+**/*.egg-info/
+
+
+## macOS
+**/.DS_Store

@@ -1,0 +1,32 @@
+[project]
+name = "backend"
+version = "0.1.0"
+authors = [
+    { name = "CDR4733", email = "shsing2@naver.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.20.0",
+    "celery[redis]>=5.6.3",
+    "fastapi>=0.141.1",
+    "fastembed>=0.8.0",
+    "httpx>=0.28.1",
+    "prometheus-client>=0.26.0",
+    "psycopg[binary]>=3.3.5",
+    "pydantic>=2.13.5",
+    "pydantic-settings>=2.15.0",
+    "python-jose[cryptography]>=3.5.0",
+    "qdrant-client>=1.19.1",
+    "ruff>=0.16.8",
+    "sqlalchemy>=2.0.54",
+    "uvicorn[standard]>=0.53.0",
+]
+
+
+[tool.ruff]
+# 최근에는 모니터 가로 길이가 길어져 100, 120을 많이 선호함
+line-length = 100
+
+[tool.ruff.lint]
+# 코드를 더 깔끔하게 강제하기 위한 린트 규칙 활성화 (선택 사항)
+select = ["E", "F", "I", "UP", "B"]

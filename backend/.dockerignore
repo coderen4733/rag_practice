@@ -1,3 +1,11 @@
+# [수정] 환경 변수 파일 제외 규칙 추가
+#  - Dockerfile에서 COPY . . 를 하면 이 파일에 적힌 것 빼고 전부 이미지에 복사됨
+#  - .env가 이미지에 들어가면 이미지를 받은 누구나 DB 비밀번호 등을 볼 수 있음 => 반드시 제외
+#  - 환경 변수는 컨테이너 실행 시 docker-compose의 env_file 등으로 전달해야 함
+.env
+.env.*
+!.env.example
+
 .git
 .pytest_cache
 .ruff_cache

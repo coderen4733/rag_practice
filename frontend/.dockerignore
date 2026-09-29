@@ -1,7 +1,21 @@
+# [수정] 프론트엔드(Node.js 계열)에 맞는 제외 목록으로 변경
+#  - 기존: 백엔드(파이썬)용 .dockerignore 내용이 그대로 복사되어 있었음
+#  - 프론트엔드 프레임워크가 정해지면 필요에 따라 항목을 추가/수정해 주세요
+
+# 환경 변수 파일 (비밀값이 이미지에 들어가지 않도록 반드시 제외)
+.env
+.env.*
+!.env.example
+
+# 의존성 폴더 (컨테이너 안에서 npm install 등으로 새로 설치함)
+node_modules
+
+# 빌드 결과물 (컨테이너 안에서 새로 빌드함)
+dist
+.next
+out
+
+# 기타
 .git
-.pytest_cache
-.ruff_cache
-.venv
-**/__pycache__
-**/*.pyc
-tests
+.DS_Store
+*.log

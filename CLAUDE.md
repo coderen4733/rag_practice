@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 1. 프로젝트 개요
 - **라이브러리 관리**: uv
-- **라이브러리 사용**: fastapi, uvicorn[standard], httpx, pydantic, pydantic-settings, sqlalchemy, alembic, psycopg[binary], celery[redis], prometheus-client, grafana, python-jose[cryptography], qdrant-client, fastembed
+- **라이브러리 사용**: fastapi, uvicorn[standard], httpx, pydantic[email], pydantic-settings, sqlalchemy, alembic, psycopg[binary], celery[redis], prometheus-client, grafana, pyjwt, cryptography, qdrant-client, fastembed (개발용: ruff)
 - **프로젝트 목적**: LLM이 VectorDB에 저장된 문서들의 내용을 답변에 반영하도록 만드는 RAG 시스템 구축
 - **프로젝트 목표 기능**: VectorDB에 저장된 회사 문서를 참고하여 답변이 가능한 챗봇 기능, 회사 업무에 특화된 AI Agent를 생성하고 제어할 수 있는 기능 등
 - **주요 특징**:
@@ -25,12 +25,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 2. 백엔드 개발 및 빌드 명령어 (Commands)
 백엔드 개발 시에는 `backend/` 디렉토리에서 진행합니다. (uv 프로젝트 루트)
 - **의존성 설치**: `uv sync`
-- **패키지 추가**: `uv add <패키지명>`
+- **패키지 추가**: `uv add <패키지명>` (개발 도구는 `uv add --dev <패키지명>`)
+- **서버 실행**: `uv run uvicorn src.main:app --reload`
+- **마이그레이션 생성**: `uv run alembic revision --autogenerate -m "변경 내용"`
+- **마이그레이션 적용**: `uv run alembic upgrade head`
 - **린트 검사**: `uv run ruff check .`
 
 ## 3. 주의
-- **설정**: `backend/core/config.py`가 `.env`의 모든 환경변수를 로드하도록 해야 함
+- **모델 추가**: 새 SQLAlchemy 모델은 `src/core/base.py`의 `Base`를 상속하고, `src/migrations/env.py`에 모델 모듈 import를 추가해야 alembic이 인식함
+- **API 권한**: 로그인이 필요한 API는 `src/services/iam/auth/dependencies.py`의 `CurrentUser`(로그인 사용자), `AdminUser`(관리자) 또는 `require_roles(...)`를 라우터 매개변수로 사용함. 의존 방향은 `auth -> user` 한 방향만 허용 (user의 service/repository에서 auth를 import 금지)
+- **환경 변수 추가**: `src/core/config.py`에 필드를 추가하고 `backend/.env.example`에도 항목을 추가해야 함
+- **설정**: `backend/src/core/config.py`가 `.env`의 모든 환경변수를 로드하도록 해야 함
 
 ## 4. 규칙
-- **환경 변수 관리**: 데이터베이스 URL이나 AWS 관련 비밀키는 절대 코드에 하드코딩하지 말고, `core/config.py`를 통해 `.env`에서 안전하게 로드하여 사용해야 합니다.
+- **환경 변수 관리**: 데이터베이스 URL이나 AWS 관련 비밀키는 절대 코드에 하드코딩하지 말고, `src/core/config.py`를 통해 `.env`에서 안전하게 로드하여 사용해야 합니다.
 - **린트**: `pyproject.toml`의 `[tool.ruff]` 설정에 따라 `line-length = 100`, `select = ["E", "F", "I", "UP", "B"]` (pycodestyle, pyflakes, isort)를 준수합니다. 백엔드 작업을 마치기 전 `uv run ruff check .`를 실행하세요.
+
+## 5. 주석
+- **코드 수정**: 클로드가 코드를 수정한 경우 `[수정]` 표시를 꼭 표기하고 `기존`과 `변경` 후가 어떻게 다른지 각각 설명해 주어야 한다.
+- **수정 확인 후**: 개발자가 클로드의 수정 내용을 모두 확인한 경우, `[수정]` 표시를 지우고 `*` 표시를 하여 수정된 내용을 확인했음을 표시한다.
+

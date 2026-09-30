@@ -30,6 +30,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **마이그레이션 생성**: `uv run alembic revision --autogenerate -m "변경 내용"`
 - **마이그레이션 적용**: `uv run alembic upgrade head`
 - **린트 검사**: `uv run ruff check .`
+- **테스트 실행**: `uv run pytest` (테스트 코드는 `backend/tests/`, 실제 DB 대신 메모리 SQLite 사용)
 
 ## 3. 주의
 - **모델 추가**: 새 SQLAlchemy 모델은 `src/core/base.py`의 `Base`를 상속하고, `src/migrations/env.py`에 모델 모듈 import를 추가해야 alembic이 인식함
@@ -40,6 +41,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 4. 규칙
 - **환경 변수 관리**: 데이터베이스 URL이나 AWS 관련 비밀키는 절대 코드에 하드코딩하지 말고, `src/core/config.py`를 통해 `.env`에서 안전하게 로드하여 사용해야 합니다.
 - **린트**: `pyproject.toml`의 `[tool.ruff]` 설정에 따라 `line-length = 100`, `select = ["E", "F", "I", "UP", "B"]` (pycodestyle, pyflakes, isort)를 준수합니다. 백엔드 작업을 마치기 전 `uv run ruff check .`를 실행하세요.
+- **테스트**: 기능을 추가하거나 수정하면 `backend/tests/` 아래에 해당 기능의 테스트도 함께 추가·수정해야 합니다. 테스트 파일 위치는 `src/services/` 구조를 따릅니다 (예: `src/services/iam/auth` -> `tests/iam/test_auth.py`). 백엔드 작업을 마치기 전 `uv run pytest`를 실행하여 전체 테스트가 통과하는지 확인하세요. 테스트는 실제 DB(Supabase)에 연결하지 않고 `tests/conftest.py`의 fixture(메모리 SQLite)를 사용해야 합니다.
 
 ## 5. 주석
 - **코드 수정**: 클로드가 코드를 수정한 경우 `[수정]` 표시를 꼭 표기하고 `기존`과 `변경` 후가 어떻게 다른지 각각 설명해 주어야 한다.

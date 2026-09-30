@@ -42,9 +42,14 @@ os.environ["EMBEDDING_API_KEY"] = ""
 os.environ["EMBEDDING_MODEL"] = "bge-m3"
 os.environ["EMBEDDING_DIM"] = "1024"
 os.environ["EMBEDDING_BATCH_SIZE"] = "32"
+# [수정] 문서 등록 설정 추가 (.env 값과 상관없이 테스트는 항상 같은 조건으로 실행)
+os.environ["DOCUMENT_MAX_FILE_SIZE"] = str(1024 * 1024)
+os.environ["DOCUMENT_CHUNK_SIZE"] = "500"
+os.environ["DOCUMENT_CHUNK_OVERLAP"] = "100"
 
 # 2. import (환경 변수 설정 뒤에 해야 하므로 파일 중간에 위치)
 #  - pyproject.toml에서 이 파일만 ruff E402(import 위치 규칙) 검사를 꺼 두었음
+import hashlib  # [수정] 가짜 임베딩 벡터를 만들 때 사용
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from datetime import UTC, datetime
 
@@ -66,7 +71,8 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.pool import StaticPool
 
-from src.core import vector_db
+# [수정] embedding 모듈 import 추가 (가짜 임베딩으로 바꿔치기하기 위함)
+from src.core import embedding, vector_db
 from src.core.base import Base
 from src.core.database import get_db_session
 from src.core.security import create_access_token, hash_password
@@ -76,6 +82,9 @@ from src.main import app
 from src.services.iam.auth import models as auth_models  # noqa: F401
 from src.services.iam.user.enums import UserRole
 from src.services.iam.user.models import User
+
+# [수정] 문서 모델 import 추가 (documents 테이블이 Base.metadata에 등록되어 테스트 DB에 만들어짐)
+from src.services.rag.document import models as document_models  # noqa: F401
 from tests.constants import TEST_PASSWORD
 
 # 테스트용 비밀번호 해시를 "한 번만" 미리 계산
@@ -208,3 +217,42 @@ async def vector_db_client(monkeypatch) -> AsyncGenerator[AsyncQdrantClient]:
     await vector_db.ensure_collection()
     yield client
     await client.close()
+
+
+# 9. [수정] 가짜 임베딩 (fake_embedding) 추가
+#  - 기존: 없음
+#  - 변경: 실제 임베딩 서버 대신 "가짜 임베딩 함수"로 바꿔치기
+#    => embedding.embed_texts()를 호출하는 모든 코드(문서 등록, 나중에 검색)가 이 가짜를 사용
+#  - 가짜 벡터 규칙: 같은 문장이면 항상 같은 벡터 (문장의 SHA-256 해시값으로 숫자를 만듦)
+#    => 실제 의미를 반영하지는 않지만, "저장 -> 조회" 흐름을 확인하기에는 충분함
+#  - 사용법:
+#      async def test_xxx(fake_embedding):
+#          fake_embedding.calls            # 지금까지 임베딩 요청된 문장 묶음 목록
+#          fake_embedding.fail_after = 0   # 첫 번째 요청부터 실패하게 만들기 (장애 상황 흉내)
+#          fake_embedding.fail_after = 1   # 두 번째 요청부터 실패 (중간까지만 저장된 상황 흉내)
+class FakeEmbedding:
+    def __init__(self) -> None:
+        self.calls: list[list[str]] = []  # 요청받은 문장 묶음 기록
+        self.fail_after: int | None = None  # 몇 번째 요청부터 실패할지 (None이면 실패 안 함)
+
+    async def embed_texts(self, texts: list[str]) -> list[list[float]]:
+        # 실패 설정이 있고, 이미 그 횟수만큼 요청을 받았으면 => 임베딩 서버 장애처럼 에러 발생
+        if self.fail_after is not None and len(self.calls) >= self.fail_after:
+            raise embedding.EmbeddingError("가짜 임베딩 서버 장애")
+        self.calls.append(list(texts))
+        return [self._vector(text) for text in texts]
+
+    # 문장 -> 1024차원 가짜 벡터 (SHA-256 해시 32바이트를 반복해서 1024개 숫자로 만듦)
+    @staticmethod
+    def _vector(text: str) -> list[float]:
+        digest = hashlib.sha256(text.encode("utf-8")).digest()
+        return [digest[i % len(digest)] / 255 for i in range(1024)]
+
+
+@pytest.fixture
+def fake_embedding(monkeypatch) -> FakeEmbedding:
+    fake = FakeEmbedding()
+    # embedding 파일의 embed_texts 함수를 가짜로 바꿔치기
+    #  - embed_text(문장 하나)도 내부에서 embed_texts를 호출하므로 함께 가짜가 됨
+    monkeypatch.setattr(embedding, "embed_texts", fake.embed_texts)
+    return fake

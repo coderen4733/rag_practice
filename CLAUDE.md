@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 1. 프로젝트 개요
 - **라이브러리 관리**: uv
-- **라이브러리 사용**: fastapi, uvicorn[standard], httpx, pydantic[email], pydantic-settings, sqlalchemy, alembic, psycopg[binary], celery[redis], prometheus-client, grafana, pyjwt, cryptography, qdrant-client (개발용: ruff, pytest, pytest-asyncio, aiosqlite)
+- **라이브러리 사용**: fastapi, uvicorn[standard], httpx, pydantic[email], pydantic-settings, sqlalchemy, alembic, psycopg[binary], celery[redis], prometheus-client, grafana, pyjwt, cryptography, qdrant-client, python-multipart (개발용: ruff, pytest, pytest-asyncio, aiosqlite)
 - **프로젝트 목적**: LLM이 VectorDB에 저장된 문서들의 내용을 답변에 반영하도록 만드는 RAG 시스템 구축
 - **프로젝트 목표 기능**: VectorDB에 저장된 회사 문서를 참고하여 답변이 가능한 챗봇 기능, 회사 업무에 특화된 AI Agent를 생성하고 제어할 수 있는 기능 등
 - **주요 특징**:
@@ -34,6 +34,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **마이그레이션 적용**: `uv run alembic upgrade head`
 - **린트 검사**: `uv run ruff check .`
 - **테스트 실행**: `uv run pytest` (테스트 코드는 `backend/tests/`, 실제 DB 대신 메모리 SQLite 사용)
+
+### 프론트엔드 (기능 테스트용 화면)
+프론트엔드 개발 시에는 `frontend/` 디렉토리에서 진행합니다. (React + TypeScript + Vite, 아이콘 lucide-react, 폰트 pretendard)
+- **의존성 설치**: `npm install`
+- **개발 서버 실행**: `npm run dev` → http://localhost:3000 (백엔드 서버가 먼저 켜져 있어야 함)
+- **타입 검사 + 빌드**: `npm run build` (결과물: `frontend/dist/`)
+- **API 호출**: 모든 요청은 `/api`로 시작하고, 개발 서버가 백엔드(http://localhost:8000)로 대신 전달(프록시)함 (`vite.config.ts` 참고)
+- **메뉴 추가**: `src/constants/menu.ts`에 메뉴를 정의하고, 기능을 완성하면 `ready: true`로 바꾼 뒤 `src/App.tsx`에 화면을 연결
+- **폐쇄망 대비**: 폰트, 아이콘 등 외부 CDN을 사용하지 않고 npm 패키지로 설치하여 빌드 결과에 포함시킴
 
 ## 3. 주의
 - **모델 추가**: 새 SQLAlchemy 모델은 `src/core/base.py`의 `Base`를 상속하고, `src/migrations/env.py`에 모델 모듈 import를 추가해야 alembic이 인식함

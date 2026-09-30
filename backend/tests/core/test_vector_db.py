@@ -60,3 +60,70 @@ def test_get_client_before_init(monkeypatch):
 
     with pytest.raises(vector_db.VectorDBError):
         vector_db.get_vector_db_client()
+
+
+# ─────────────────────────────────────────────
+# [수정] 문서 청크 저장/삭제/개수 세기 테스트 추가
+#  - 기존: 없음
+#  - 변경: upsert_document_chunks, delete_document_chunks, count_document_chunks 확인
+# ─────────────────────────────────────────────
+# 테스트용 가짜 벡터 (1024차원, value로 채움)
+def vectors(count, value=0.1):
+    return [[value] * 1024 for _ in range(count)]
+
+
+# 청크 저장 => 개수가 맞고, payload에 문서 id / 청크 번호 / 파일명 / 원문이 들어 있어야 함
+async def test_upsert_and_count_document_chunks(vector_db_client):
+    await vector_db.upsert_document_chunks(
+        document_id=1, filename="a.md", chunks=["첫째", "둘째"], vectors=vectors(2)
+    )
+
+    assert await vector_db.count_document_chunks(1) == 2
+    points, _ = await vector_db_client.scroll(
+        collection_name=settings.vector_db_collection, with_payload=True
+    )
+    payloads = sorted((point.payload for point in points), key=lambda p: p["chunk_index"])
+    assert payloads == [
+        {"document_id": 1, "chunk_index": 0, "filename": "a.md", "text": "첫째"},
+        {"document_id": 1, "chunk_index": 1, "filename": "a.md", "text": "둘째"},
+    ]
+
+
+# start_index => 나눠서 저장해도 청크 번호가 이어져야 함 (0, 1 다음 2, 3)
+async def test_upsert_document_chunks_start_index(vector_db_client):
+    await vector_db.upsert_document_chunks(1, "a.md", ["0", "1"], vectors(2), start_index=0)
+    await vector_db.upsert_document_chunks(1, "a.md", ["2", "3"], vectors(2), start_index=2)
+
+    points, _ = await vector_db_client.scroll(
+        collection_name=settings.vector_db_collection, with_payload=True
+    )
+    assert sorted(point.payload["chunk_index"] for point in points) == [0, 1, 2, 3]
+
+
+# 같은 문서의 같은 청크를 다시 저장하면 => 개수가 늘지 않고 덮어쓰기 (포인트 id가 항상 같으므로)
+async def test_upsert_document_chunks_overwrites(vector_db_client):
+    await vector_db.upsert_document_chunks(1, "a.md", ["옛 내용"], vectors(1))
+    await vector_db.upsert_document_chunks(1, "a.md", ["새 내용"], vectors(1))
+
+    assert await vector_db.count_document_chunks(1) == 1
+    points, _ = await vector_db_client.scroll(
+        collection_name=settings.vector_db_collection, with_payload=True
+    )
+    assert points[0].payload["text"] == "새 내용"
+
+
+# 청크 수와 벡터 수가 다르면 => VectorDBError
+async def test_upsert_document_chunks_length_mismatch(vector_db_client):
+    with pytest.raises(vector_db.VectorDBError):
+        await vector_db.upsert_document_chunks(1, "a.md", ["하나", "둘"], vectors(1))
+
+
+# 청크 삭제 => 해당 문서의 청크만 삭제되고 다른 문서는 그대로
+async def test_delete_document_chunks_only_target(vector_db_client):
+    await vector_db.upsert_document_chunks(1, "a.md", ["a1", "a2"], vectors(2))
+    await vector_db.upsert_document_chunks(2, "b.md", ["b1"], vectors(1))
+
+    await vector_db.delete_document_chunks(1)
+
+    assert await vector_db.count_document_chunks(1) == 0
+    assert await vector_db.count_document_chunks(2) == 1

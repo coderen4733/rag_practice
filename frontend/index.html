@@ -1,0 +1,28 @@
+<!doctype html>
+<!-- [수정] 새 파일 추가 - 프론트엔드의 유일한 HTML 파일 (React가 #root 안에 화면을 그림) -->
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ONGYEOL AI 사내 지식베이스</title>
+    <!--
+      테마 깜빡임 방지: React가 뜨기 "전"에 저장된 테마(라이트/다크)를 먼저 적용
+      (이 코드가 없으면 다크 모드 사용자는 새로고침할 때마다 잠깐 흰 화면이 보임)
+    -->
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("rag.theme");
+          var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.dataset.theme = saved || (prefersDark ? "dark" : "light");
+        } catch (e) {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

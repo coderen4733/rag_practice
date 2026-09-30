@@ -30,6 +30,11 @@ from src.core.config import get_settings
 from src.services.iam.auth import models as auth_models  # noqa: F401
 from src.services.iam.user import models as user_models  # noqa: F401
 
+# [수정] 문서(Document) 모델 import 추가
+#  - 기존: auth, user 모델만 import
+#  - 변경: documents 테이블을 alembic이 인식하도록 추가
+from src.services.rag.document import models as document_models  # noqa: F401
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 # (alembic.ini 파일의 설정값에 접근할 수 있게 해주는 객체)

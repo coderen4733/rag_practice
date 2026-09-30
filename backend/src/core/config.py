@@ -6,7 +6,9 @@ from pathlib import Path
 
 #  * Field import 추가 (환경 변수 값의 길이 등 검증 규칙을 지정하기 위함)
 #  - JWT 비밀키의 최소 길이(32자)를 검사하는 데 사용
-from pydantic import Field
+#  * model_validator import
+#  - 여러 설정값을 "함께" 비교하는 검사(청크 겹침 < 청크 크기의 절반)를 만들기 위해 사용
+from pydantic import Field, model_validator
 
 # pydantic_settings: 환경 변수를 읽어 파이썬 객체로 자동 변환/검증해 주는 라이브러리
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -70,9 +72,35 @@ class Settings(BaseSettings):
     embedding_batch_size: int = 32
     embedding_timeout: int = 60  # 임베딩 요청 제한 시간 (단위: 초, CPU는 느릴 수 있어 넉넉하게)
 
+    #  * 문서 등록(업로드 -> 청크 분할) 관련 설정 추가
+    #  - 업로드 파일 크기 제한, 청크 크기, 청크 겹침 길이를 환경 변수로 조절
+    #  - 파일 크기 제한 (단위: 바이트, 기본값 1MB = 1024 * 1024)
+    #    => 지금은 업로드 요청 안에서 바로 임베딩까지 처리하므로, 파일이 크면 요청이 너무 오래 걸림
+    #       (1MB ≒ 한글 약 35만 자 ≒ 청크 약 900개)
+    #    => 나중에 Celery 백그라운드 처리를 추가하면 늘릴 수 있음
+    document_max_file_size: int = Field(default=1024 * 1024, ge=1)
+    # 청크 크기 (단위: 글자 수) - 문서를 이 길이 정도로 잘라서 각각 임베딩
+    #  - 너무 크면: 여러 주제가 한 청크에 섞여서 검색이 부정확해짐
+    #  - 너무 작으면: 문맥이 끊겨서 청크 하나만 보고는 의미를 알기 어려움
+    document_chunk_size: int = Field(default=500, ge=100)
+    # 청크 겹침 길이 (단위: 글자 수) - 앞 청크의 끝부분을 다음 청크 앞에 다시 넣음
+    #  => 문장이 청크 경계에서 잘려도, 다음 청크에 앞 내용이 조금 남아 있어 문맥이 이어짐
+    document_chunk_overlap: int = Field(default=100, ge=0)
+
+    #  * 청크 설정값 검사 추가
+    #  - 청크 겹침이 청크 크기의 절반 이상이면 서버 시작 시 에러
+    #    => 겹침이 너무 크면 청크가 조금씩만 앞으로 나아가서 청크 개수가 폭발적으로 늘어남
+    #  - @model_validator(mode="after"): 모든 설정값을 읽은 "후"에 실행되는 검사 함수
+    @model_validator(mode="after")
+    def check_chunk_settings(self) -> "Settings":
+        if self.document_chunk_overlap >= self.document_chunk_size // 2:
+            raise ValueError(
+                "DOCUMENT_CHUNK_OVERLAP은 DOCUMENT_CHUNK_SIZE의 절반보다 작아야 합니다."
+            )
+        return self
+
     #  * DB에서 실행되는 SQL을 콘솔에 출력할지 여부를 환경 변수로 제어
-    #  - 기존: database.py에 echo=True가 하드코딩되어 운영 환경에서도 모든 SQL이 출력됨
-    #  - 변경: 기본값은 False(출력 안 함), 개발 중 보고 싶으면 .env에 DB_ECHO=true 추가
+    #  - 기본값은 False(출력 안 함), 개발 중 보고 싶으면 .env에 DB_ECHO=true 추가
     db_echo: bool = False
 
     #  * CORS 허용 도메인 목록을 환경 변수로 관리

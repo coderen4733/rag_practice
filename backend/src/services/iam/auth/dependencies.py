@@ -1,6 +1,7 @@
 # 📌 사용법 (라우터 함수의 매개변수에 추가)
 #  - 로그인한 사용자면 누구나  : current_user: CurrentUser
 #  - 관리자(admin)만           : current_user: AdminUser
+#  - 관리자(admin + manager)   : current_user: AdminOrManagerUser
 #  - 원하는 권한 조합          : current_user: Annotated[User, Depends(require_roles(...))]
 #      예) Annotated[User, Depends(require_roles(UserRole.ADMIN, UserRole.MANAGER))]
 #
@@ -89,7 +90,9 @@ def require_roles(*allowed_roles: UserRole):
 
 
 # 라우터에서 짧게 쓰기 위한 별명(타입 별칭)
-#  - CurrentUser: 로그인한 사용자라면 누구나 통과
-#  - AdminUser  : 로그인한 사용자 중 role이 admin인 경우만 통과
+# 1. 사용자라면 누구나 통과
 CurrentUser = Annotated[User, Depends(get_current_user)]
+# 2. admin만 통과
 AdminUser = Annotated[User, Depends(require_roles(UserRole.ADMIN))]
+# 3. admin 또는 manager만 통과
+AdminOrManagerUser = Annotated[User, Depends(require_roles(UserRole.ADMIN, UserRole.MANAGER))]

@@ -59,3 +59,31 @@ class ReTokenReq(BaseModel):
 class ReTokenRes(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+# 비밀번호 변경(change-password) - 요청(Req)
+class ChangePasswordReq(BaseModel):
+    current_password: str = Field(
+        ...,
+        min_length=8,
+        max_length=128,
+        description="현재 비밀번호를 입력해 주세요.",
+    )
+    new_password: str = Field(
+        ...,
+        min_length=8,
+        max_length=128,
+        description="새 비밀번호는 8자 이상 128자 이하여야 합니다.",
+    )
+    new_password_confirm: str = Field(
+        ...,
+        min_length=8,
+        max_length=128,
+        description="새 비밀번호를 재입력해 주세요.",
+    )
+
+
+# 비밀번호 변경(change-password) - 응답(Res)
+class ChangePasswordRes(BaseModel):
+    success: bool = True
+    signed_out_sessions: int  # 비밀번호 변경으로 로그아웃 처리된 기기(리프레시 토큰) 수

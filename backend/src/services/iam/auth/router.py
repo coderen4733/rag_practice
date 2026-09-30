@@ -6,7 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.common.response import ResponseSchema
 from src.core.database import get_db_session
 from src.services.iam.auth import service as auth_service
+from src.services.iam.auth.dependencies import CurrentUser
 from src.services.iam.auth.schemas import (
+    ChangePasswordReq,
+    ChangePasswordRes,
     ReTokenReq,
     ReTokenRes,
     SignInReq,
@@ -101,5 +104,26 @@ async def re_token(
     # 2. Router -> FrontEnd
     return {
         "message": "액세스토큰 재발급에 성공했습니다.",
+        "data": data,
+    }
+
+
+# 비밀번호 변경(change-password) API
+@auth_router.patch(
+    "/password",
+    response_model=ResponseSchema[ChangePasswordRes],
+    status_code=status.HTTP_200_OK,
+)
+async def change_password(
+    dto: ChangePasswordReq,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    # 로그인한 사용자만 통과 (토큰 없음/잘못됨 => 401)
+    current_user: CurrentUser,
+):
+    # 1. Router <- Service
+    data = await auth_service.change_password(session, dto, current_user)
+    # 2. Router -> FrontEnd
+    return {
+        "message": "비밀번호가 변경되었습니다. 모든 기기에서 다시 로그인해 주세요.",
         "data": data,
     }

@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.services.iam.auth.models import RefreshToken
@@ -54,3 +54,19 @@ async def delete_refresh_token(
     await session.delete(refresh_token)
     # 2. Repository -> Service
     return True
+
+
+# 리프레시 토큰(Refresh Token) 전체 삭제(D) by user_id
+#  - 한 사용자의 리프레시 토큰을 "한 번의 쿼리로" 모두 삭제
+#    => 비밀번호 변경 시 "모든 기기에서 로그아웃" 처리에 사용
+async def delete_refresh_tokens_by_user_id(
+    session: AsyncSession,
+    user_id: int,
+) -> int:
+    # 1. Repository -> DB
+    # 실행되는 SQL: DELETE FROM rag_practice.refresh_tokens WHERE user_id = ?
+    query = delete(RefreshToken).where(RefreshToken.user_id == user_id)
+    result = await session.execute(query)
+    # 2. Repository -> Service
+    # rowcount: 이 쿼리로 삭제된 행(row)의 개수 (로그인되어 있던 기기 수)
+    return result.rowcount

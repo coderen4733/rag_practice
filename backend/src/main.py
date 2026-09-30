@@ -8,7 +8,21 @@ from fastapi.middleware.cors import (
 
 from src.api import api_router
 from src.core.config import get_settings
-from src.core.database import check_db_connection, close_db
+from src.core.database import (
+    check_db_connection,
+    close_db,
+)
+from src.core.embedding import (
+    check_embedding_connection,
+    close_embedding,
+    init_embedding,
+)
+from src.core.vector_db import (
+    check_vector_db_connection,
+    close_vector_db,
+    ensure_collection,
+    init_vector_db,
+)
 
 #  * 로깅 기본 설정
 #  - level=logging.INFO: INFO 이상(INFO, WARNING, ERROR, CRITICAL)의 로그만 출력
@@ -40,16 +54,34 @@ async def lifespan(app: FastAPI):
         # ON-D-F. DB 연결 실패
         logger.critical(f"🔴 DB 연결에 실패했습니다. {db_err}")
         raise  # DB 연결 실패 시 바로 종료되도록. 만약 서버는 그대로 두고싶다면 주석 처리
-    # ON-V. Vector DB 연결 (아직 미구현 상태. 연결된 것으로 간주)
+    # ON-V. Vector DB 연결
     try:
+        # ON-V-I. Vector DB 클라이언트 생성 (src/core/vector_db.py 참고)
+        init_vector_db()
         # ON-V-C. Vector DB 연결 체크
-        # await check_vectordb_connection()
+        await check_vector_db_connection()
+        # ON-V-P. 문서 벡터를 저장할 컬렉션 준비
+        await ensure_collection()
         # ON-V-S. Vector DB 연결 성공
         logger.info("🟢 Vector DB 연결에 성공했습니다.")
     except Exception as vdb_err:
         # ON-V-F. Vector DB 연결 실패
         logger.critical(f"🔴 Vector DB 연결에 실패했습니다. {vdb_err}")
         raise  # Vector DB 연결 실패 시 바로 종료되도록. 만약 서버는 그대로 두고싶다면 주석 처리
+    # ON-M. 임베딩 서버(Embedding Model) 연결
+    #  - HTTP 클라이언트 생성 -> 짧은 문장을 실제로 임베딩해서 연결/모델/차원 확인
+    #  - 개발 중에는 _deploy 폴더에서 docker compose up -d embedding 으로 먼저 켜 두어야 함
+    try:
+        # ON-M-I. 임베딩 HTTP 클라이언트 생성 (src/core/embedding.py 참고)
+        init_embedding()
+        # ON-M-C. 임베딩 서버 연결 체크
+        await check_embedding_connection()
+        # ON-M-S. 임베딩 서버 연결 성공
+        logger.info("🟢 임베딩 서버 연결에 성공했습니다.")
+    except Exception as emb_err:
+        # ON-M-F. 임베딩 서버 연결 실패
+        logger.critical(f"🔴 임베딩 서버 연결에 실패했습니다. {emb_err}")
+        raise  # 임베딩 서버 연결 실패 시 바로 종료되도록. 만약 서버는 그대로 두고싶다면 주석 처리
     # ON-E. App 실행
     yield
 
@@ -67,12 +99,21 @@ async def lifespan(app: FastAPI):
     # OFF-V. Vector DB 연결 정리
     try:
         # OFF-V-C. Vector DB 클로즈
-        # await close_vectordb()
+        await close_vector_db()
         # OFF-V-S. Vector DB 연결 정리 성공
         logger.info("❎ Vector DB 연결이 종료되었습니다.")
     except Exception as vdb_err:
         # OFF-V-F. Vector DB 연결 정리 실패
         logger.error(f"⛔️ Vector DB 연결 정리에 실패했습니다. {vdb_err}")
+    # OFF-M. 임베딩 서버 연결 정리
+    try:
+        # OFF-M-C. 임베딩 HTTP 클라이언트 클로즈
+        await close_embedding()
+        # OFF-M-S. 임베딩 서버 연결 정리 성공
+        logger.info("❎ 임베딩 서버 연결이 종료되었습니다.")
+    except Exception as emb_err:
+        # OFF-M-F. 임베딩 서버 연결 정리 실패
+        logger.error(f"⛔️ 임베딩 서버 연결 정리에 실패했습니다. {emb_err}")
 
 
 # L-2. FastAPI 인스턴스 생성 시 lifespan(L-1)을 따름

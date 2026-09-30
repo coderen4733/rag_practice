@@ -29,6 +29,19 @@ os.environ["ACCESS_TOKEN_SECRET"] = "test-access-token-secret-at-least-32-charac
 os.environ["REFRESH_TOKEN_SECRET"] = "test-refresh-token-secret-at-least-32-characters"
 os.environ["ACCESS_TOKEN_EXPIRE"] = "30"
 os.environ["REFRESH_TOKEN_EXPIRE"] = "1"
+# [수정] Vector DB / 임베딩 서버 테스트용 환경 변수 추가
+#  - 기존: 없음
+#  - 변경: VECTOR_DB_URL, EMBEDDING_BASE_URL이 필수값이 되어서 테스트용 가짜 주소를 넣음
+#    => 실제 Qdrant, 임베딩 서버에는 연결하지 않음
+#       (Qdrant는 아래 vector_db_client fixture의 "메모리 모드", 임베딩은 가짜 응답을 사용)
+os.environ["VECTOR_DB_URL"] = "http://vector-db.test:6333"
+os.environ["VECTOR_DB_API_KEY"] = ""
+os.environ["VECTOR_DB_COLLECTION"] = "documents"
+os.environ["EMBEDDING_BASE_URL"] = "http://embedding.test/v1"
+os.environ["EMBEDDING_API_KEY"] = ""
+os.environ["EMBEDDING_MODEL"] = "bge-m3"
+os.environ["EMBEDDING_DIM"] = "1024"
+os.environ["EMBEDDING_BATCH_SIZE"] = "32"
 
 # 2. import (환경 변수 설정 뒤에 해야 하므로 파일 중간에 위치)
 #  - pyproject.toml에서 이 파일만 ruff E402(import 위치 규칙) 검사를 꺼 두었음
@@ -41,6 +54,9 @@ import pytest
 #  - 서버 시작/종료 코드(main.py의 lifespan)는 실행되지 않음
 #    => lifespan의 "실제 DB 연결 체크"도 실행되지 않으므로 테스트에서 안전함
 from httpx import ASGITransport, AsyncClient
+
+# [수정] Qdrant 클라이언트 import 추가 (메모리 모드 Vector DB를 만들기 위함)
+from qdrant_client import AsyncQdrantClient
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -50,6 +66,7 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.pool import StaticPool
 
+from src.core import vector_db
 from src.core.base import Base
 from src.core.database import get_db_session
 from src.core.security import create_access_token, hash_password
@@ -172,3 +189,22 @@ def auth_header() -> Callable[[User], dict[str, str]]:
         return {"Authorization": f"Bearer {access_token}"}
 
     return _auth_header
+
+
+# 8. [수정] 테스트용 Vector DB (vector_db_client) 추가
+#  - 기존: 없음
+#  - 변경: 실제 Qdrant 대신 "메모리 모드" Qdrant를 만들어서 src/core/vector_db.py에 끼워 넣음
+#    => get_vector_db_client()를 호출하는 모든 코드가 이 메모리 Qdrant를 사용하게 됨
+#  - location=":memory:": 서버 없이 파이썬 안에서만 동작하는 Qdrant (테스트가 끝나면 사라짐)
+#  - monkeypatch: pytest 기본 fixture. 변수/함수를 "테스트 동안만" 바꿔치기하고,
+#    테스트가 끝나면 자동으로 원래대로 되돌려줌
+#  - 사용법: async def test_xxx(vector_db_client): ...
+@pytest.fixture
+async def vector_db_client(monkeypatch) -> AsyncGenerator[AsyncQdrantClient]:
+    client = AsyncQdrantClient(location=":memory:")
+    # vector_db 파일의 _client 변수를 메모리 Qdrant로 바꿔치기
+    monkeypatch.setattr(vector_db, "_client", client)
+    # 실제 서버 시작 때와 똑같이 컬렉션 준비
+    await vector_db.ensure_collection()
+    yield client
+    await client.close()

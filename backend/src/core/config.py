@@ -39,10 +39,36 @@ class Settings(BaseSettings):
     #          엔진 생성 시 "Could not parse SQLAlchemy URL" 이라는 알기 어려운 에러 발생
     #  - 변경: .env에 DB_URL이 없으면 서버 시작 시 "db_url Field required" 라고 바로 알려줌
     db_url: str  # Database URL (Postgres DB 접속 주소) - 필수
-    # vector_db_url, redis_url은 아직 사용하는 코드가 없으므로 기본값("")을 유지
+    # redis_url은 아직 사용하는 코드가 없으므로 기본값("")을 유지
     # (실제로 연결 코드를 작성할 때 db_url처럼 기본값을 지워 필수값으로 바꾸면 됨)
-    vector_db_url: str = ""  # Vector DB URL (Qdrant Vector DB 접속 주소)
     redis_url: str = ""  # Redis 접속 주소 (작업 큐 + 요청 제한 카운터)
+
+    #  * Vector DB(Qdrant) 관련 설정 추가 + vector_db_url을 필수값으로 변경
+    #  - src/core/vector_db.py에서 실제로 연결하므로 기본값을 지워 필수값으로 변경
+    #    => .env에 VECTOR_DB_URL이 없으면 서버 시작 시 "vector_db_url Field required" 에러
+    #  - 클라우드(Qdrant Cloud)든 고객사 자체 Qdrant든 .env 값만 바꾸면 전환 가능
+    vector_db_url: str  # Qdrant 접속 주소 (예: https://xxx.cloud.qdrant.io:6333) - 필수
+    # API 키: Qdrant Cloud는 필수, API 키를 설정하지 않은 자체 운영 Qdrant는 비워둠(None)
+    vector_db_api_key: str | None = None
+    # 문서 청크(벡터)를 저장할 컬렉션 이름 (컬렉션: Qdrant에서 테이블 같은 개념)
+    vector_db_collection: str = "documents"
+    vector_db_timeout: int = 10  # Qdrant 요청 제한 시간 (단위: 초)
+
+    #  * 임베딩(Embedding) 서버 관련 설정 추가
+    #  - 임베딩은 앱 안에서 계산하지 않고, OpenAI 호환 API(/v1/embeddings)를 가진
+    #          별도 서버에 요청해서 받아옴 (src/core/embedding.py)
+    #    - 개발: Docker로 띄운 Ollama 컨테이너 (CPU) => http://localhost:8081/v1
+    #    - 납품: 고객사 환경의 임베딩 서버 주소로 .env만 변경
+    embedding_base_url: str  # 임베딩 서버 주소 (/v1 까지) - 필수
+    # API 키: 인증이 필요한 임베딩 서버만 사용 (Ollama는 필요 없으므로 비워둠)
+    embedding_api_key: str | None = None
+    embedding_model: str = "bge-m3"  # 임베딩 모델 이름 (임베딩 서버에 등록된 이름)
+    # 벡터 차원: 모델이 만들어내는 숫자 목록의 길이 (bge-m3 = 1024)
+    #  - ⚠️ Qdrant 컬렉션을 이 차원으로 만들기 때문에, 모델을 바꾸면 이 값도 반드시 같이 바꿔야 함
+    embedding_dim: int = 1024
+    # 한 번의 요청에 보낼 문장 수 (문서 청크가 많을 때 나눠서 보냄)
+    embedding_batch_size: int = 32
+    embedding_timeout: int = 60  # 임베딩 요청 제한 시간 (단위: 초, CPU는 느릴 수 있어 넉넉하게)
 
     #  * DB에서 실행되는 SQL을 콘솔에 출력할지 여부를 환경 변수로 제어
     #  - 기존: database.py에 echo=True가 하드코딩되어 운영 환경에서도 모든 SQL이 출력됨

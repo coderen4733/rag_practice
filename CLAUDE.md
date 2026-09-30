@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 1. 프로젝트 개요
 - **라이브러리 관리**: uv
-- **라이브러리 사용**: fastapi, uvicorn[standard], httpx, pydantic[email], pydantic-settings, sqlalchemy, alembic, psycopg[binary], celery[redis], prometheus-client, grafana, pyjwt, cryptography, qdrant-client, fastembed (개발용: ruff)
+- **라이브러리 사용**: fastapi, uvicorn[standard], httpx, pydantic[email], pydantic-settings, sqlalchemy, alembic, psycopg[binary], celery[redis], prometheus-client, grafana, pyjwt, cryptography, qdrant-client (개발용: ruff, pytest, pytest-asyncio, aiosqlite)
 - **프로젝트 목적**: LLM이 VectorDB에 저장된 문서들의 내용을 답변에 반영하도록 만드는 RAG 시스템 구축
 - **프로젝트 목표 기능**: VectorDB에 저장된 회사 문서를 참고하여 답변이 가능한 챗봇 기능, 회사 업무에 특화된 AI Agent를 생성하고 제어할 수 있는 기능 등
 - **주요 특징**:
@@ -18,14 +18,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Supabase에서 제공하는 무료티어 PostgreSQL DB를 사용
   - ORM은 SQLAlchemy을 사용하며, 통신은 psycopg[binary]를 활용 
   - DB 스키마 버전 관리 및 마이그레이션은 alembic으로 관리
-  - Qdrant에서 제공하는 무료티어 Vector DB를 사용
+  - Qdrant에서 제공하는 무료티어 Vector DB를 사용 (개발 단계. 납품 시 고객사 자체 Qdrant로 교체 가능)
   - qdrant-client를 통해 Vector DB와 데이터를 주고 받음
-  - 데이터는 fastembed를 통해 벡터화 (모델은 BGE-M3 사용 예정)
+  - 임베딩 모델(BGE-M3 예정)과 LLM(Qwen, GPT-OSS 등)은 앱 안에서 직접 실행하지 않고, OpenAI 호환 HTTP API(`/v1/embeddings`, `/v1/chat/completions`)로 httpx를 통해 호출
+    - 개발: 로컬 Ollama / 납품: 고객사 GPU 서버(vLLM, TEI 등)
+  - **배포 목표**: Docker 컨테이너로 만들어 폐쇄망(인터넷 차단) 기업 환경에 납품할 수 있어야 함
 
 ## 2. 백엔드 개발 및 빌드 명령어 (Commands)
 백엔드 개발 시에는 `backend/` 디렉토리에서 진행합니다. (uv 프로젝트 루트)
 - **의존성 설치**: `uv sync`
 - **패키지 추가**: `uv add <패키지명>` (개발 도구는 `uv add --dev <패키지명>`)
+- **개발용 임베딩 서버 실행** (서버 실행 전 필수): `_deploy/` 디렉토리에서 `docker compose up -d embedding` (Ollama + bge-m3, CPU 전용, 포트 8081)
 - **서버 실행**: `uv run uvicorn src.main:app --reload`
 - **마이그레이션 생성**: `uv run alembic revision --autogenerate -m "변경 내용"`
 - **마이그레이션 적용**: `uv run alembic upgrade head`
@@ -42,6 +45,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **환경 변수 관리**: 데이터베이스 URL이나 AWS 관련 비밀키는 절대 코드에 하드코딩하지 말고, `src/core/config.py`를 통해 `.env`에서 안전하게 로드하여 사용해야 합니다.
 - **린트**: `pyproject.toml`의 `[tool.ruff]` 설정에 따라 `line-length = 100`, `select = ["E", "F", "I", "UP", "B"]` (pycodestyle, pyflakes, isort)를 준수합니다. 백엔드 작업을 마치기 전 `uv run ruff check .`를 실행하세요.
 - **테스트**: 기능을 추가하거나 수정하면 `backend/tests/` 아래에 해당 기능의 테스트도 함께 추가·수정해야 합니다. 테스트 파일 위치는 `src/services/` 구조를 따릅니다 (예: `src/services/iam/auth` -> `tests/iam/test_auth.py`). 백엔드 작업을 마치기 전 `uv run pytest`를 실행하여 전체 테스트가 통과하는지 확인하세요. 테스트는 실제 DB(Supabase)에 연결하지 않고 `tests/conftest.py`의 fixture(메모리 SQLite)를 사용해야 합니다.
+
+- **외부 시스템 연동 (폐쇄망 납품 대비)**:
+  - 모든 외부 연결 정보(주소, API 키, 모델 이름, 벡터 차원 등)는 코드에 적지 말고 `src/core/config.py`의 환경 변수로 받아야 합니다. 환경 변수만 바꾸면 클라우드/고객사 환경을 전환할 수 있어야 합니다.
+  - Vector DB, 임베딩, LLM을 호출하는 코드는 각각 `src/core/` 아래 한 파일에만 둡니다. 다른 제품으로 교체할 때 그 파일만 수정하면 되도록 하기 위함입니다.
+  - 앱이 실행 중에 인터넷(모델 자동 다운로드, 외부 CDN 등)에 의존하지 않도록 해야 합니다.
 
 ## 5. 주석
 - **코드 수정**: 클로드가 코드를 수정한 경우 `[수정]` 표시를 꼭 표기하고 `기존`과 `변경` 후가 어떻게 다른지 각각 설명해 주어야 한다.

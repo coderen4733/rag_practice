@@ -1,6 +1,5 @@
-# [수정] 새 파일 추가 - 임베딩 서버 호출 코드(src/core/embedding.py) 테스트
-#  - 기존: 없음
-#  - 변경: 요청 형식, 나눠서 보내기(배치), 순서 보장, 각종 에러 상황을 확인
+#  * 임베딩 서버 호출 코드(src/core/embedding.py) 테스트
+#  - 요청 형식, 나눠서 보내기(배치), 순서 보장, 각종 에러 상황을 확인
 #
 # 📌 실제 임베딩 서버 없이 테스트하는 방법: httpx.MockTransport
 #  - HTTP 요청을 실제로 보내지 않고, 우리가 만든 "가짜 서버 함수(handler)"가 대신 응답함
@@ -77,7 +76,7 @@ async def test_embed_texts_keeps_order(fake_embedding_server):
 # 문장이 많으면 => embedding_batch_size씩 나눠서 여러 번 요청해야 함
 async def test_embed_texts_batches(fake_embedding_server, monkeypatch):
     server = fake_embedding_server()
-    # 테스트 동안만 한 번에 2문장씩 보내도록 설정 변경
+    # 테스트 동안만 한 번에 2문장씩 보내도록 설정
     monkeypatch.setattr(embedding.settings, "embedding_batch_size", 2)
 
     vectors = await embedding.embed_texts(["1", "2", "3", "4", "5"])

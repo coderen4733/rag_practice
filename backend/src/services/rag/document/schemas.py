@@ -1,6 +1,5 @@
-# [수정] 새 파일 추가 - 문서(Document) API의 요청/응답 형식
-#  - 기존: 없음
-#  - 변경: 문서 등록/조회/목록/삭제 API에서 주고받는 데이터 형식 정의
+#  * 문서(Document) API의 요청/응답 형식
+#  - 문서 등록/조회/목록/삭제 API에서 주고받는 데이터 형식 정의
 
 from datetime import datetime
 from typing import Literal

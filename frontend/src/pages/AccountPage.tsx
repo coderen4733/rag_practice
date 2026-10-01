@@ -1,6 +1,5 @@
-// [수정] 새 파일 추가 - 내 계정 화면
-//  - 기존: 없음
-//  - 변경: 내 정보 조회(GET /users/me) + 비밀번호 변경(PATCH /auth/password) + 로그아웃
+//  * 내 계정 화면
+//  - 내 정보 조회(GET /users/me) + 비밀번호 변경(PATCH /auth/password) + 로그아웃
 //    - 비밀번호를 바꾸면 서버가 모든 기기의 로그인을 끊으므로, 이 화면도 로그인 화면으로 이동함
 
 import { useEffect, useRef, useState, type FormEvent } from "react";

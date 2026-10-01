@@ -1,6 +1,5 @@
-// [수정] 새 파일 추가 - 왼쪽 메뉴 구성
-//  - 기존: 없음
-//  - 변경: 전체 프로젝트 구조에 필요한 메뉴를 한 곳에 정의
+// 왼쪽 메뉴 구성
+//  - 전체 프로젝트 구조에 필요한 메뉴를 한 곳에 정의
 //    - ready: true  => 지금 동작하는 메뉴
 //    - ready: false => 아직 구현되지 않은 메뉴 ("준비중" 표시, 누르면 준비 중 안내 화면)
 //    - roles        => 이 권한을 가진 사용자에게만 메뉴를 보여줌 (없으면 모두에게 보임)
@@ -64,22 +63,8 @@ export const MENU_GROUPS: MenuGroup[] = [
     icon: Database,
     items: [
       { label: "문서 관리", path: "/documents", icon: FileText, ready: true },
-      {
-        label: "문서 검색",
-        path: "/search",
-        icon: Search,
-        ready: false,
-        plan: {
-          stage: "③ 검색 API 단계에서 구현 예정",
-          description:
-            "질문을 입력하면 의미가 비슷한 문서 청크를 Vector DB(Qdrant)에서 찾아 보여줍니다. LLM을 붙이기 전에 검색 품질을 먼저 확인하는 화면입니다.",
-          features: [
-            "질문 임베딩 후 유사도 검색 (상위 N개 청크)",
-            "청크 원문, 출처 문서, 유사도 점수 표시",
-            "문서/상태별 검색 범위 필터",
-          ],
-        },
-      },
+      //  - ready: true (③ 검색 API 완성, pages/SearchPage.tsx 연결)
+      { label: "문서 검색", path: "/search", icon: Search, ready: true },
       {
         label: "검색 품질 평가",
         path: "/evaluation",
@@ -99,18 +84,7 @@ export const MENU_GROUPS: MenuGroup[] = [
     label: "AI 어시스턴트",
     icon: Bot,
     items: [
-      {
-        label: "챗봇",
-        path: "/chat",
-        icon: MessagesSquare,
-        ready: false,
-        plan: {
-          stage: "④ 챗봇 단계에서 구현 예정",
-          description:
-            "검색된 문서 청크를 근거로 LLM(Qwen 등)이 답변하고, 답변과 함께 출처 문서를 보여줍니다. 오른쪽 AI Copilot 창도 이 기능과 연결됩니다.",
-          features: ["문서 기반 질의응답 (RAG)", "답변 출처 표시", "답변 스트리밍(글자가 바로바로 표시)"],
-        },
-      },
+      { label: "챗봇", path: "/chat", icon: MessagesSquare, ready: true },
       {
         label: "에이전트 스튜디오",
         path: "/agents",
@@ -129,7 +103,7 @@ export const MENU_GROUPS: MenuGroup[] = [
         icon: History,
         ready: false,
         plan: {
-          stage: "④ 챗봇 단계에서 구현 예정",
+          stage: "④-2 대화 이어가기 단계에서 구현 예정",
           description: "지금까지 AI와 나눈 대화를 다시 보고 이어서 질문할 수 있습니다.",
           features: ["대화 목록/검색", "대화 이어하기", "대화 삭제"],
         },

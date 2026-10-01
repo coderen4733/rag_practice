@@ -1,6 +1,5 @@
-// [수정] 새 파일 추가 - 백엔드 API 호출 공통 함수
-//  - 기존: 없음
-//  - 변경: 모든 API 요청이 이 파일의 request() 함수를 거치도록 함
+//  * 백엔드 API 호출 공통 함수
+//  - 모든 API 요청이 이 파일의 request() 함수를 거치도록 함
 //    1) 주소 앞에 "/api"를 붙이고, 로그인 토큰(Authorization 헤더)을 자동으로 넣음
 //    2) 액세스 토큰이 만료되어 401이 오면 => 리프레시 토큰으로 재발급 후 "한 번 더" 요청
 //    3) 재발급도 실패하면 => 저장된 토큰을 지우고 "로그인 만료" 이벤트를 알림
@@ -132,6 +131,50 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     throw new ApiError(response.status, extractErrorMessage(payload, response.status));
   }
   return payload as T;
+}
+
+// 스트리밍 요청 함수
+//  - 응답을 "조금씩 읽을 수 있는" Response 객체를 그대로 돌려줌 (챗봇 답변 스트리밍용)
+//    - 로그인 토큰 넣기, 401 시 토큰 재발급 후 다시 요청하기는 request()와 똑같이 처리
+//    - 에러 응답(4xx, 5xx)은 스트리밍을 시작하기 전에 ApiError로 던짐
+//  - signal: 요청을 중간에 취소할 때 사용 (예: 답변 생성 중 "중지" 버튼)
+export async function requestStream(
+  path: string,
+  body: unknown,
+  signal?: AbortSignal,
+  retried = false,
+): Promise<Response> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const accessToken = tokenStorage.getAccess();
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+
+  let response: Response;
+  try {
+    response = await fetch(buildUrl(path), {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+      signal,
+    });
+  } catch (error) {
+    // 사용자가 "중지"를 눌러 취소한 경우는 그대로 전달 (화면에서 따로 처리)
+    if (error instanceof DOMException && error.name === "AbortError") throw error;
+    throw new ApiError(0, "서버에 연결할 수 없습니다. 백엔드 서버가 켜져 있는지 확인하세요.");
+  }
+
+  // 401 => 토큰 재발급 후 한 번만 다시 요청 (request()와 같은 방식)
+  if (response.status === 401 && tokenStorage.getRefresh()) {
+    if (!retried && (await refreshAccessToken())) {
+      return requestStream(path, body, signal, true);
+    }
+    notifySessionExpired();
+  }
+
+  if (!response.ok) {
+    const payload: unknown = await response.json().catch(() => null);
+    throw new ApiError(response.status, extractErrorMessage(payload, response.status));
+  }
+  return response;
 }
 
 // 응답의 data 꺼내기 (data가 비어 있으면 에러)

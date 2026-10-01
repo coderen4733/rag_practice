@@ -12,12 +12,13 @@
 #  - 컬렉션(collection): Qdrant에서 벡터를 모아두는 곳 (DB의 "테이블" 같은 개념)
 #  - 포인트(point): 컬렉션에 저장되는 데이터 1개 = 벡터 + payload(추가 정보, 예: 문서 id, 원문)
 
-#  문서 청크 저장/삭제/개수 세기에 필요한 도구 추가
+#  문서 청크 저장/삭제/개수 세기에 필요한 도구
 #    - uuid: 청크마다 고유한 포인트 id를 만들기 위함
 #    - UnexpectedResponse, ResponseHandlingException: Qdrant 요청이 실패했을 때 발생하는 에러
 #    - Filter, FieldCondition, MatchValue, FilterSelector: "document_id가 N인 포인트"를 고르는 조건
 #    - PayloadSchemaType: payload 색인(index)의 종류, PointStruct: 저장할 포인트 1개의 형식
 import uuid  # 청크마다 고유한 포인트 id 만드는 용
+from dataclasses import dataclass
 
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
@@ -26,6 +27,7 @@ from qdrant_client.models import (
     FieldCondition,
     Filter,
     FilterSelector,
+    MatchAny,
     MatchValue,
     PayloadSchemaType,
     PointStruct,
@@ -42,7 +44,7 @@ settings = get_settings()
 #    => 다른 파일에서는 get_vector_db_client()로 꺼내 써야 함
 _client: AsyncQdrantClient | None = None
 
-#  * Qdrant 요청 실패 시 발생하는 에러 종류 묶음 추가
+#  * Qdrant 요청 실패 시 발생하는 에러 종류 묶음
 #  - UnexpectedResponse       : Qdrant가 에러를 응답함 (예: 컬렉션 없음, 권한 없음)
 #  - ResponseHandlingException: Qdrant에 연결 자체가 안 됨 (예: 주소 오류, 시간 초과)
 #  - 이 에러들이 나면 VectorDBError로 바꿔서 던짐 => 다른 파일은 VectorDBError만 처리하면 됨
@@ -55,6 +57,21 @@ DOCUMENT_ID_FIELD = "document_id"
 # Vector DB 관련 에러 (설정이 잘못되었을 때 원인을 알기 쉽게 하기 위한 전용 에러)
 class VectorDBError(Exception):
     pass
+
+
+#  * 검색 결과 1개(청크 1개)를 담는 형식
+#  - Qdrant가 돌려주는 결과(ScoredPoint)를 우리 프로젝트의 형식으로 바꿔서 돌려줌
+#    => 다른 파일은 Qdrant 전용 형식을 몰라도 됨 (나중에 다른 Vector DB로 바꿔도 이 형식은 그대로)
+#  - @dataclass: 값만 담는 클래스를 간단하게 만들어 주는 파이썬 기능
+#    (__init__ 등을 자동으로 만들어 줌 => ChunkSearchHit(document_id=1, ...) 처럼 생성)
+#  - frozen=True: 만든 뒤에는 값을 바꿀 수 없음 (실수로 결과를 수정하는 것을 막음)
+@dataclass(frozen=True)
+class ChunkSearchHit:
+    document_id: int  # 청크가 속한 문서 id
+    chunk_index: int  # 문서 안에서 몇 번째 청크인지 (0부터)
+    filename: str  # 문서 파일명
+    text: str  # 청크 원문
+    score: float  # 유사도 점수 (코사인 유사도: 1에 가까울수록 질문과 의미가 비슷함)
 
 
 # Qdrant 클라이언트 생성 - src/main.py의 lifespan에서 사용
@@ -94,7 +111,7 @@ async def ensure_collection() -> None:
     collection_name = settings.vector_db_collection
 
     # 1. 컬렉션이 없으면 새로 만들기
-    # 컬렉션을 만든 뒤 바로 return 하지 않고 3번(색인 준비)까지 진행하도록 변경
+    # 컬렉션을 만든 뒤 바로 return 하지 않고 3번(색인 준비)까지 진행하도록
     #  - if 컬렉션 없음: 생성 / else: 2번(차원 확인) => 두 경우 모두 3번 실행
     if not await client.collection_exists(collection_name):
         await client.create_collection(
@@ -194,7 +211,7 @@ async def upsert_document_chunks(
         raise VectorDBError(f"Vector DB에 청크를 저장하지 못했습니다. ({err})") from err
 
 
-# 문서 청크 전체 삭제 함수 추가
+# 문서 청크 전체 삭제 함수
 #  - 특정 문서(document_id)의 청크를 Qdrant에서 모두 삭제 (문서 삭제 기능에서 사용)
 async def delete_document_chunks(document_id: int) -> None:
     try:
@@ -208,7 +225,7 @@ async def delete_document_chunks(document_id: int) -> None:
         raise VectorDBError(f"Vector DB에서 청크를 삭제하지 못했습니다. ({err})") from err
 
 
-# 문서 청크 개수 세기 함수 추가
+# 문서 청크 개수 세기 함수
 #  - 특정 문서(document_id)의 청크가 Qdrant에 몇 개 저장되어 있는지 확인
 #    (DB의 chunk_count와 실제 저장 개수가 같은지 확인할 때 사용)
 async def count_document_chunks(document_id: int) -> int:
@@ -221,6 +238,54 @@ async def count_document_chunks(document_id: int) -> int:
     except QDRANT_ERRORS as err:
         raise VectorDBError(f"Vector DB에서 청크 개수를 세지 못했습니다. ({err})") from err
     return result.count
+
+
+#  * 문서 청크 유사도 검색 함수
+#  - 질문 벡터와 가장 비슷한 청크를 limit개 찾아서 점수가 높은 순서로 돌려줌
+#  - query_vector: 질문을 임베딩한 벡터 (src/core/embedding.py의 embed_text 결과)
+#  - limit: 가져올 청크 개수 (예: 5 => 상위 5개)
+#  - document_ids: 검색할 문서 id 목록 (None이면 전체 문서에서 검색)
+#  - 참고: qdrant-client 최신 버전은 예전의 search() 함수가 없어지고 query_points()를 사용함
+async def search_document_chunks(
+    query_vector: list[float],
+    limit: int,
+    document_ids: list[int] | None = None,
+) -> list[ChunkSearchHit]:
+    # 1. 검색 범위 조건 (특정 문서만 검색하는 경우)
+    #  - SQL로 비유하면: WHERE document_id IN (1, 3, 5)
+    query_filter = None
+    if document_ids:
+        query_filter = Filter(
+            must=[FieldCondition(key=DOCUMENT_ID_FIELD, match=MatchAny(any=document_ids))]
+        )
+    # 2. Qdrant에 유사도 검색 요청
+    #  - with_payload=True: 벡터와 함께 저장한 추가 정보(문서 id, 원문 등)도 함께 받음
+    try:
+        response = await get_vector_db_client().query_points(
+            collection_name=settings.vector_db_collection,
+            query=query_vector,
+            limit=limit,
+            query_filter=query_filter,
+            with_payload=True,
+        )
+    except QDRANT_ERRORS as err:
+        raise VectorDBError(f"Vector DB에서 검색하지 못했습니다. ({err})") from err
+    # 3. Qdrant 결과(ScoredPoint) -> 우리 형식(ChunkSearchHit)으로 변환
+    #  - response.points는 이미 점수가 높은 순서로 정렬되어 있음
+    #  - payload 값이 없는 경우를 대비해 .get(키, 기본값) 사용
+    hits = []
+    for point in response.points:
+        payload = point.payload or {}
+        hits.append(
+            ChunkSearchHit(
+                document_id=int(payload.get(DOCUMENT_ID_FIELD, 0)),
+                chunk_index=int(payload.get("chunk_index", 0)),
+                filename=str(payload.get("filename", "")),
+                text=str(payload.get("text", "")),
+                score=float(point.score),
+            )
+        )
+    return hits
 
 
 # Vector DB 연결 종료 함수 - src/main.py의 lifespan에서 사용

@@ -1,0 +1,62 @@
+{
+  "description": "챗봇 답변 품질 평가용 질문 세트 - 프로젝트 최상위 md 폴더의 테스트 문서 3개를 등록한 상태에서 사용. expected_keywords: 답변에 모두 들어 있어야 할 값 (| 로 구분한 것은 그중 하나만 있으면 됨)",
+  "answerable": [
+    {
+      "question": "부모님이 돌아가시면 휴가는 며칠이고 경조금은 얼마인가요?",
+      "expected_keywords": ["5일", "100만"]
+    },
+    {
+      "question": "법에서 정한 부모 사망 시 경조사휴가 최소 일수는?",
+      "expected_keywords": ["3일"]
+    },
+    {
+      "question": "배우자가 출산하면 회사에서 휴가를 며칠 주나요?",
+      "expected_keywords": ["20일"]
+    },
+    {
+      "question": "반반차는 한 달에 몇 번까지 쓸 수 있어?",
+      "expected_keywords": ["4회|4번"]
+    },
+    {
+      "question": "직원을 해고하려면 며칠 전에 미리 알려줘야 하나요?",
+      "expected_keywords": ["45일"]
+    },
+    {
+      "question": "2031년 AI 에이전트 시장 규모 전망은?",
+      "expected_keywords": ["6조 2천억|6조2천억|6.2조"]
+    },
+    {
+      "question": "결 온프렘 구축 기간을 얼마나 줄이는 것이 목표야?",
+      "expected_keywords": ["6주"]
+    },
+    {
+      "question": "신입사원 수습 기간과 그동안의 급여는?",
+      "expected_keywords": ["3개월", "100%|전액"]
+    },
+    {
+      "question": "연차 하루 쓰려면 며칠 전에 신청해야 하나요?",
+      "expected_keywords": ["3근무일|3일"]
+    },
+    {
+      "question": "고객 접대비는 한 사람당 얼마까지 쓸 수 있나요?",
+      "expected_keywords": ["7만"]
+    },
+    {
+      "question": "퇴직금은 어떻게 계산하나요?",
+      "expected_keywords": ["32일"]
+    },
+    {
+      "question": "2031년 매출 목표는 얼마야?",
+      "expected_keywords": ["1,150억|1150억"]
+    },
+    {
+      "question": "법에서 정한 연차와 우리 회사 연차는 며칠씩이야?",
+      "expected_keywords": ["16일", "18일"]
+    }
+  ],
+  "unanswerable": [
+    "회사 주차장 이용 요금은 얼마인가요?",
+    "사내 식당 메뉴는 매주 언제 공지되나요?",
+    "대표이사의 출신 대학은 어디인가요?"
+  ]
+}

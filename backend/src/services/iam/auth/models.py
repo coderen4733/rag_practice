@@ -10,7 +10,7 @@ class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
 
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"),  # user_id에 외래키 추가
+        ForeignKey("users.id", ondelete="CASCADE"),  # user_id에 외래키 지정
         index=True,  # user_id로 검색 때 빠르게 찾도록 색인(index) 생성(모든 기기 로그아웃 기능 시)
         nullable=False,
     )

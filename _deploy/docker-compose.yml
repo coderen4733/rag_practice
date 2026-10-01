@@ -1,6 +1,5 @@
-#  * 새로 작성 - 개발용 임베딩 서버(CPU) 실행 설정
-#  - 기존: 빈 파일
-#  - 변경: Ollama 컨테이너에 bge-m3 임베딩 모델을 올려서 CPU로 실행
+#  * 개발용 임베딩 서버(CPU) 실행 설정
+#  - Ollama 컨테이너에 bge-m3 임베딩 모델을 올려서 CPU로 실행
 #
 # 📌 사용법 (_deploy 폴더에서 실행, Docker Desktop이 켜져 있어야 함)
 #  - 켜기      : docker compose up -d embedding

@@ -48,11 +48,11 @@ def verify_password(plain_password: str, hashed_password_str: str) -> bool:
 
 
 # 가짜 비밀번호 트릭 : 서버 시작 시 한 번만 계산해 두고 재사용함
-# 로그인 시 "존재하지 않는 email"일 때 사용할 가짜 비밀번호 해시 추가
+# 로그인 시 "존재하지 않는 email"일 때 사용할 가짜 비밀번호 해시
 DUMMY_PASSWORD_HASH = hash_password("dummy-password-for-timing-attack")
 
 
-# JWT 토큰 생성 공통 함수 추가
+# JWT 토큰 생성 공통 함수
 # 앞에 _(언더바)가 붙은 함수: "이 파일 안에서만 쓰는 함수"라는 파이썬의 관례
 def _create_token(
     user_id: int,
@@ -121,7 +121,7 @@ def decode_token(token: str, token_type: str) -> dict:
     return payload
 
 
-# 토큰 해시 함수 추가 (리프레시 토큰을 DB에 저장할 때 사용)
+# 토큰 해시 함수 (리프레시 토큰을 DB에 저장할 때 사용)
 # 비밀번호는 Scrypt(일부러 느린 해시)를 쓰지만, 토큰은 이미 충분히 길고 랜덤하므로
 # 빠른 SHA-256으로도 안전함 (결과는 항상 64자리 문자열)
 def hash_token(token: str) -> str:

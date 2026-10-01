@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.services.iam.user.enums import UserRole
 from src.services.iam.user.models import User
 
-#  * 정렬 기준 이름 -> 실제 DB 컬럼 연결표 추가
+#  * 정렬 기준 이름 -> 실제 DB 컬럼 연결표
 #  - 요청으로 받은 정렬 기준(문자열)을 실제 컬럼으로 바꿀 때 사용
 #    => 이 표에 없는 컬럼으로는 정렬할 수 없음 (schemas.py의 Literal과 이중으로 막음)
 SORTABLE_COLUMNS = {
@@ -65,7 +65,7 @@ async def get_user_by_email(
 
 
 # 사용자(User) 조회(R-D) API (by id)
-# 토큰재발급(re-token) 시 토큰 속 user_id로 사용자를 찾기 위해 추가
+# 토큰재발급(re-token) 시 토큰 속 user_id로 사용자를 찾기 위해
 # (토큰을 발급한 뒤에 계정이 비활성화되었을 수 있으므로 매번 다시 확인해야 함)
 async def get_user_by_id(
     session: AsyncSession,

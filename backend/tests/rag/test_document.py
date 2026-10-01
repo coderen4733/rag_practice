@@ -1,6 +1,5 @@
-# [수정] 새 파일 추가 - 문서(Document) API 테스트
-#  - 기존: 없음
-#  - 변경: 문서 등록 -> 청크 분할 -> 임베딩 -> Qdrant 저장 전체 흐름 + 목록/상세/삭제 확인
+#  * 문서(Document) API 테스트
+#  - 문서 등록 -> 청크 분할 -> 임베딩 -> Qdrant 저장 전체 흐름 + 목록/상세/삭제 확인
 #  - 실제 서버 대신 사용하는 것 (conftest.py의 fixture)
 #    - DB      : 메모리 SQLite (db_engine, session_factory)
 #    - Qdrant  : 메모리 모드 Qdrant (vector_db_client)
@@ -36,11 +35,9 @@ async def normal_user(make_user):
     return await make_user("user@corp.com", role=UserRole.USER)
 
 
-# 문서 API 테스트에 필요한 환경을 한 번에 준비하는 fixture
-#  - 메모리 Qdrant + 가짜 임베딩을 함께 켜고, 가짜 임베딩 객체를 돌려줌
-@pytest.fixture
-def rag_env(vector_db_client, fake_embedding):
-    return fake_embedding
+#  * rag_env fixture를 conftest.py로 이동
+#  - 문서 검색 테스트(test_search.py)에서도 함께 쓰기 위해 conftest.py로 옮김
+#    (conftest.py의 fixture는 import 없이 모든 테스트 파일에서 사용 가능)
 
 
 # 문서 업로드 API 호출 도우미
@@ -84,9 +81,7 @@ async def test_upload_document_success(client, manager, auth_header, rag_env):
 
 # 저장된 청크의 payload(추가 정보)에 문서 id, 청크 번호, 파일명, 원문이 들어 있어야 함
 #  - 청크 번호는 0부터 끝까지 빠짐없이 이어져야 함 (32개씩 나눠 저장해도)
-async def test_upload_document_chunk_payload(
-    client, admin, auth_header, rag_env, vector_db_client
-):
+async def test_upload_document_chunk_payload(client, admin, auth_header, rag_env, vector_db_client):
     text = long_text(sentence_count=600)  # 청크 32개 초과 => 임베딩을 여러 번 나눠서 요청
     expected_chunks = split_text(text, chunk_size=500, chunk_overlap=100)
     assert len(expected_chunks) > 32
@@ -124,9 +119,7 @@ async def test_upload_document_extension_case_insensitive(
 
 # 지원하지 않는 형식 => 415
 @pytest.mark.parametrize("filename", ["report.pdf", "image.png", "noextension"])
-async def test_upload_document_unsupported_extension(
-    client, admin, auth_header, rag_env, filename
-):
+async def test_upload_document_unsupported_extension(client, admin, auth_header, rag_env, filename):
     response = await upload(client, auth_header(admin), filename)
     assert response.status_code == 415
 

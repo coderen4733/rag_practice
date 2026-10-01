@@ -6,9 +6,8 @@ Create Date: 2026-09-29 16:14:51.241212
 
 """
 
-# [수정] refresh_tokens 테이블의 컬럼 이름 변경 마이그레이션 (token_hash -> hashed_token)
-#  - 기존: 없음 (새로 추가한 마이그레이션 파일)
-#  - 변경: DB의 컬럼 이름을 models.py(RefreshToken.hashed_token)와 똑같이 맞춤
+#  * refresh_tokens 테이블의 컬럼 이름 변경 마이그레이션 (token_hash -> hashed_token)
+#  - DB의 컬럼 이름을 models.py(RefreshToken.hashed_token)와 똑같이 맞춤
 #
 #  - ⚠️ 이 파일은 --autogenerate 로 만들지 않고 직접 작성함
 #    => autogenerate는 "이름 변경"을 알아채지 못하고,

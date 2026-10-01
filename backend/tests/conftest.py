@@ -1,6 +1,5 @@
-#  * 새 파일 추가 - 모든 테스트가 함께 쓰는 "공통 준비물(fixture)" 모음
-#  - 기존: 없음
-#  - 변경: pytest가 테스트를 실행하기 전에 이 파일을 "자동으로" 먼저 읽음
+#  * 모든 테스트가 함께 쓰는 "공통 준비물(fixture)" 모음
+#  - pytest가 테스트를 실행하기 전에 이 파일을 "자동으로" 먼저 읽음
 #    => 여기에 만든 fixture는 import 없이 모든 테스트 파일에서 사용 가능
 #
 # 📌 fixture란?
@@ -29,9 +28,8 @@ os.environ["ACCESS_TOKEN_SECRET"] = "test-access-token-secret-at-least-32-charac
 os.environ["REFRESH_TOKEN_SECRET"] = "test-refresh-token-secret-at-least-32-characters"
 os.environ["ACCESS_TOKEN_EXPIRE"] = "30"
 os.environ["REFRESH_TOKEN_EXPIRE"] = "1"
-# [수정] Vector DB / 임베딩 서버 테스트용 환경 변수 추가
-#  - 기존: 없음
-#  - 변경: VECTOR_DB_URL, EMBEDDING_BASE_URL이 필수값이 되어서 테스트용 가짜 주소를 넣음
+#  * Vector DB / 임베딩 서버 테스트용 환경 변수
+#  - VECTOR_DB_URL, EMBEDDING_BASE_URL이 필수값이 되어서 테스트용 가짜 주소를 넣음
 #    => 실제 Qdrant, 임베딩 서버에는 연결하지 않음
 #       (Qdrant는 아래 vector_db_client fixture의 "메모리 모드", 임베딩은 가짜 응답을 사용)
 os.environ["VECTOR_DB_URL"] = "http://vector-db.test:6333"
@@ -42,14 +40,23 @@ os.environ["EMBEDDING_API_KEY"] = ""
 os.environ["EMBEDDING_MODEL"] = "bge-m3"
 os.environ["EMBEDDING_DIM"] = "1024"
 os.environ["EMBEDDING_BATCH_SIZE"] = "32"
-# [수정] 문서 등록 설정 추가 (.env 값과 상관없이 테스트는 항상 같은 조건으로 실행)
+# 문서 등록 설정 (.env 값과 상관없이 테스트는 항상 같은 조건으로 실행)
 os.environ["DOCUMENT_MAX_FILE_SIZE"] = str(1024 * 1024)
 os.environ["DOCUMENT_CHUNK_SIZE"] = "500"
 os.environ["DOCUMENT_CHUNK_OVERLAP"] = "100"
+# LLM / 챗봇 테스트용 환경 변수 (실제 LLM 서버에는 연결하지 않음)
+os.environ["LLM_BASE_URL"] = "http://llm.test/v1"
+os.environ["LLM_API_KEY"] = ""
+os.environ["LLM_MODEL"] = "test-model"
+os.environ["LLM_REASONING_EFFORT"] = "none"
+os.environ["LLM_EXTRA_BODY"] = "{}"
+os.environ["CHAT_TOP_K"] = "5"
+os.environ["CHAT_HISTORY_MESSAGES"] = "6"
+os.environ["CHAT_QUERY_REWRITE"] = "true"
 
 # 2. import (환경 변수 설정 뒤에 해야 하므로 파일 중간에 위치)
 #  - pyproject.toml에서 이 파일만 ruff E402(import 위치 규칙) 검사를 꺼 두었음
-import hashlib  # [수정] 가짜 임베딩 벡터를 만들 때 사용
+import hashlib  # 가짜 임베딩 벡터를 만들 때 사용
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from datetime import UTC, datetime
 
@@ -60,7 +67,7 @@ import pytest
 #    => lifespan의 "실제 DB 연결 체크"도 실행되지 않으므로 테스트에서 안전함
 from httpx import ASGITransport, AsyncClient
 
-# [수정] Qdrant 클라이언트 import 추가 (메모리 모드 Vector DB를 만들기 위함)
+# Qdrant 클라이언트 import (메모리 모드 Vector DB를 만들기 위함)
 from qdrant_client import AsyncQdrantClient
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
@@ -71,8 +78,9 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.pool import StaticPool
 
-# [수정] embedding 모듈 import 추가 (가짜 임베딩으로 바꿔치기하기 위함)
-from src.core import embedding, vector_db
+# embedding 모듈 import (가짜 임베딩으로 바꿔치기하기 위함)
+# llm 모듈 import (가짜 LLM으로 바꿔치기하기 위함)
+from src.core import embedding, llm, vector_db
 from src.core.base import Base
 from src.core.database import get_db_session
 from src.core.security import create_access_token, hash_password
@@ -83,7 +91,14 @@ from src.services.iam.auth import models as auth_models  # noqa: F401
 from src.services.iam.user.enums import UserRole
 from src.services.iam.user.models import User
 
-# [수정] 문서 모델 import 추가 (documents 테이블이 Base.metadata에 등록되어 테스트 DB에 만들어짐)
+# 대화방/대화 메시지 모델 import
+#  - conversations, chat_messages 테이블이 Base.metadata에 등록되어 테스트 DB에 만들어짐
+from src.services.rag.chat import models as chat_models  # noqa: F401
+
+# 질문 다시 쓰기 규칙 import (가짜 LLM이 "질문 다시 쓰기 요청"을 구분하기 위함)
+from src.services.rag.chat.prompt import REWRITE_PROMPT
+
+# 문서 모델 import (documents 테이블이 Base.metadata에 등록되어 테스트 DB에 만들어짐)
 from src.services.rag.document import models as document_models  # noqa: F401
 from tests.constants import TEST_PASSWORD
 
@@ -200,9 +215,8 @@ def auth_header() -> Callable[[User], dict[str, str]]:
     return _auth_header
 
 
-# 8. [수정] 테스트용 Vector DB (vector_db_client) 추가
-#  - 기존: 없음
-#  - 변경: 실제 Qdrant 대신 "메모리 모드" Qdrant를 만들어서 src/core/vector_db.py에 끼워 넣음
+# 8. 테스트용 Vector DB (vector_db_client)
+#  - 실제 Qdrant 대신 "메모리 모드" Qdrant를 만들어서 src/core/vector_db.py에 끼워 넣음
 #    => get_vector_db_client()를 호출하는 모든 코드가 이 메모리 Qdrant를 사용하게 됨
 #  - location=":memory:": 서버 없이 파이썬 안에서만 동작하는 Qdrant (테스트가 끝나면 사라짐)
 #  - monkeypatch: pytest 기본 fixture. 변수/함수를 "테스트 동안만" 바꿔치기하고,
@@ -219,9 +233,8 @@ async def vector_db_client(monkeypatch) -> AsyncGenerator[AsyncQdrantClient]:
     await client.close()
 
 
-# 9. [수정] 가짜 임베딩 (fake_embedding) 추가
-#  - 기존: 없음
-#  - 변경: 실제 임베딩 서버 대신 "가짜 임베딩 함수"로 바꿔치기
+# 9. 가짜 임베딩 (fake_embedding)
+#  - 실제 임베딩 서버 대신 "가짜 임베딩 함수"로 바꿔치기
 #    => embedding.embed_texts()를 호출하는 모든 코드(문서 등록, 나중에 검색)가 이 가짜를 사용
 #  - 가짜 벡터 규칙: 같은 문장이면 항상 같은 벡터 (문장의 SHA-256 해시값으로 숫자를 만듦)
 #    => 실제 의미를 반영하지는 않지만, "저장 -> 조회" 흐름을 확인하기에는 충분함
@@ -255,4 +268,73 @@ def fake_embedding(monkeypatch) -> FakeEmbedding:
     # embedding 파일의 embed_texts 함수를 가짜로 바꿔치기
     #  - embed_text(문장 하나)도 내부에서 embed_texts를 호출하므로 함께 가짜가 됨
     monkeypatch.setattr(embedding, "embed_texts", fake.embed_texts)
+    return fake
+
+
+# 10. RAG 테스트 환경 (rag_env) - tests/rag/test_document.py에서 이동
+#  - 문서 등록/검색 테스트가 함께 쓰도록 이 파일로 옮김
+#  - 메모리 Qdrant(vector_db_client) + 가짜 임베딩(fake_embedding)을 한 번에 켜고,
+#    가짜 임베딩 객체를 돌려줌 (fail_after 설정, calls 확인용)
+#  - 사용법: async def test_xxx(client, rag_env): ...
+@pytest.fixture
+def rag_env(vector_db_client, fake_embedding) -> FakeEmbedding:
+    return fake_embedding
+
+
+# 11. 가짜 LLM (fake_llm)
+#  - 실제 LLM 서버 대신 "정해진 답변"을 돌려주는 가짜 LLM으로 바꿔치기
+#    => llm.chat_completion / llm.stream_chat_completion 을 호출하는 모든 코드가 이 가짜를 사용
+#  - 사용법:
+#      async def test_xxx(fake_llm):
+#          fake_llm.answer = "연차는 3근무일 전에 신청합니다. [1]"   # 돌려줄 답변 바꾸기
+#          fake_llm.calls                                             # LLM에게 보낸 메시지 기록
+#          fake_llm.fail = True                                       # LLM 장애 흉내
+#          fake_llm.fail_after_pieces = 2                             # 스트리밍 도중 장애 흉내
+#  -  * 질문 다시 쓰기(이어서 묻는 질문) 흉내
+#          fake_llm.rewritten = "신입사원의 연차는 며칠인가?"   # 다시 쓴 질문으로 돌려줄 값
+#          fake_llm.rewrite_calls                               # 질문 다시 쓰기 요청 기록
+#          fake_llm.rewrite_fail = True                         # 질문 다시 쓰기만 장애 흉내
+#    => 질문 다시 쓰기 요청은 calls가 아니라 rewrite_calls에 따로 기록
+#       (calls에는 기존처럼 "답변 요청"만 남아서 기존 테스트가 그대로 동작)
+class FakeLLM:
+    def __init__(self) -> None:
+        self.answer = "가짜 답변입니다. [1]"
+        self.calls: list[list[dict[str, str]]] = []  # 받은 메시지 목록 기록
+        self.fail = False  # True면 호출하자마자 실패
+        self.fail_after_pieces: int | None = None  # 스트리밍 중 몇 조각 보낸 뒤 실패할지
+        # 질문 다시 쓰기 흉내용 값
+        self.rewritten = "다시 쓴 질문입니다"  # 다시 쓴 질문으로 돌려줄 값
+        self.rewrite_calls: list[list[dict[str, str]]] = []  # 질문 다시 쓰기 요청 기록
+        self.rewrite_fail = False  # True면 질문 다시 쓰기만 실패
+
+    async def chat_completion(self, messages: list[dict[str, str]]) -> str:
+        # 질문 다시 쓰기 요청(system 메시지가 REWRITE_PROMPT)이면 다시 쓴 질문을 돌려줌
+        if messages[0]["content"] == REWRITE_PROMPT:
+            self.rewrite_calls.append(messages)
+            if self.rewrite_fail:
+                raise llm.LLMError("가짜 LLM 서버 장애 (질문 다시 쓰기)")
+            return self.rewritten
+        self.calls.append(messages)
+        if self.fail:
+            raise llm.LLMError("가짜 LLM 서버 장애")
+        return self.answer
+
+    async def stream_chat_completion(self, messages: list[dict[str, str]]):
+        self.calls.append(messages)
+        if self.fail:
+            raise llm.LLMError("가짜 LLM 서버 장애")
+        # 답변을 띄어쓰기 기준으로 나눠서 조각조각 보냄 (실제 스트리밍 흉내)
+        pieces = self.answer.split(" ")
+        for index, piece in enumerate(pieces):
+            if self.fail_after_pieces is not None and index >= self.fail_after_pieces:
+                raise llm.LLMError("가짜 LLM 서버 스트리밍 중 장애")
+            # 마지막 조각이 아니면 띄어쓰기를 다시 붙여서 보냄 (합치면 원래 답변이 되도록)
+            yield piece if index == len(pieces) - 1 else f"{piece} "
+
+
+@pytest.fixture
+def fake_llm(monkeypatch) -> FakeLLM:
+    fake = FakeLLM()
+    monkeypatch.setattr(llm, "chat_completion", fake.chat_completion)
+    monkeypatch.setattr(llm, "stream_chat_completion", fake.stream_chat_completion)
     return fake

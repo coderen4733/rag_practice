@@ -1,4 +1,4 @@
-#  * 새 파일 추가 - 문서(Document) 테이블 DB 작업
+#  * 문서(Document) 테이블 DB 작업
 #  - documents 테이블 생성/조회/수정/삭제/목록 조회
 #  - user/repository.py와 같은 방식: commit은 하지 않고 service에서 함
 

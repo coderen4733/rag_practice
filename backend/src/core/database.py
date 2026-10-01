@@ -18,7 +18,7 @@ async_engine = create_async_engine(
     settings.async_db_url,  # DB 연결 주소
     #  * echo=True -> settings.db_echo
     #  - 실행되는 SQL을 콘솔에 출력하면 디버깅에 유용하지만, 운영 환경에서는 로그가 너무 많아짐
-    #  - .env의 DB_ECHO 값으로 켜고 끌 수 있게 변경 (기본값 False)
+    #  - .env의 DB_ECHO 값으로 켜고 끌 수 있게 (기본값 False)
     echo=settings.db_echo,
     future=True,  # SQLAlchemy 2.0 버전의 새로운 스타일을 구버전에도 강제 적용(생략해도 무방)
     # 1. 연결 풀 크기(중요)

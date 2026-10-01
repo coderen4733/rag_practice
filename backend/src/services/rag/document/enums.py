@@ -1,4 +1,4 @@
-#  * 새 파일 추가 - 문서 처리 상태(DocumentStatus) 정의
+#  * 문서 처리 상태(DocumentStatus) 정의
 #  - 문서가 "처리 중 / 완료 / 실패" 중 어떤 상태인지 나타내는 값
 #    - processing: 업로드되어 청크 분할/임베딩/저장을 진행하는 중
 #    - completed : Qdrant에 모든 청크 저장 완료 (검색 가능)

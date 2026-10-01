@@ -1,7 +1,6 @@
 /*
- * [수정] 새 파일 추가 - 전체 화면 디자인(스타일)
- *  - 기존: 없음
- *  - 변경: 색상, 레이아웃(헤더/사이드바/본문/AI 창), 버튼, 표, 배지 등 모든 공통 스타일
+ * 전체 화면 디자인(스타일)
+ *  - 색상, 레이아웃(헤더/사이드바/본문/AI 창), 버튼, 표, 배지 등 모든 공통 스타일
  *
  * 📌 라이트/다크 모드 원리
  *  - 색상을 직접 쓰지 않고 "CSS 변수"(--bg, --text 등)로 정의해서 사용함
@@ -43,10 +42,9 @@
   --radius-lg: 14px;
 
   --header-height: 68px;
-  /* [수정] 사이드바 너비 212px -> 240px
-   *  - 기존: 212px => 헤더의 "로고 + 메뉴 접기 버튼" 영역보다 좁아서 세로선이 서로 어긋남
-   *  - 변경: 240px로 넓히고, 헤더의 로고 영역(.header-brand-area)도 같은 변수를 사용
-   *          => 헤더의 세로선과 사이드바 오른쪽 끝이 항상 같은 위치에 옴 */
+  /* 사이드바 너비 240px
+   *  - 240px로 넓히고, 헤더의 로고 영역(.header-brand-area)도 같은 변수를 사용
+   *    => 헤더의 세로선과 사이드바 오른쪽 끝이 항상 같은 위치에 옴 */
   --sidebar-width: 240px;
   --sidebar-collapsed-width: 68px;
   --copilot-width: 330px;
@@ -187,9 +185,8 @@ p {
 }
 
 /* ───────────── 5. 헤더 ───────────── */
-/* [수정] 헤더 좌우 여백(padding) 제거
- *  - 기존: padding: 0 20px 0 18px (헤더 전체에 여백)
- *  - 변경: padding: 0 => 왼쪽 로고 영역은 사이드바와, 오른쪽 프로필 영역은 AI 창과
+/*  헤더 좌우 여백(padding) 제거
+ *  padding: 0 => 왼쪽 로고 영역은 사이드바와, 오른쪽 프로필 영역은 AI 창과
  *          너비를 정확히 맞추기 위해 여백은 각 영역 안쪽에서 따로 줌 */
 .app-header {
   height: var(--header-height);
@@ -209,16 +206,15 @@ p {
   gap: 14px;
 }
 
-/* [수정] 헤더 왼쪽 영역: 여백 없이 로고 영역과 경로 표시를 붙여서 배치 */
+/* 헤더 왼쪽 영역: 여백 없이 로고 영역과 경로 표시를 붙여서 배치 */
 .header-left {
   gap: 0;
   min-width: 0;
 }
 
-/* [수정] 로고 + 메뉴 접기 버튼 영역 추가
- *  - 기존: 로고, 버튼, 세로선(.header-divider)이 간격(gap)만으로 나열되어 사이드바와 위치가 달랐음
- *  - 변경: 이 영역의 너비를 사이드바 너비(--sidebar-width)와 똑같이 맞추고,
- *          세로선을 영역의 오른쪽 끝(::after)에 그림 => 사이드바 오른쪽 끝과 정확히 일치
+/* 로고 + 메뉴 접기 버튼 영역
+ *  - 이 영역의 너비를 사이드바 너비(--sidebar-width)와 똑같이 맞추고,
+ *    세로선을 영역의 오른쪽 끝(::after)에 그림 => 사이드바 오른쪽 끝과 정확히 일치
  *  - 사이드바를 접으면(.collapsed) 이 영역도 같이 좁아지고, 로고는 숨기고 버튼만 보여줌 */
 .header-brand-area {
   position: relative;
@@ -334,10 +330,9 @@ p {
   text-align: center;
 }
 
-/* [수정] 프로필(로그인 상태) 영역 너비를 AI 창 너비와 같게 변경
- *  - 기존: 내용 길이만큼만 차지하고, 왼쪽 세로선도 내용 높이만큼만 그려짐
- *  - 변경: 너비 = AI 창 너비(--copilot-width), 높이 = 헤더 전체 높이
- *          => 프로필 왼쪽 세로선이 아래 AI 창의 왼쪽 테두리와 한 줄로 이어짐 */
+/* 프로필(로그인 상태) 영역 너비를 AI 창 너비와 같도록
+ *  - 너비 = AI 창 너비(--copilot-width), 높이 = 헤더 전체 높이
+ *    => 프로필 왼쪽 세로선이 아래 AI 창의 왼쪽 테두리와 한 줄로 이어짐 */
 .profile {
   position: relative;
   display: flex;
@@ -353,7 +348,7 @@ p {
   display: flex;
   align-items: center;
   gap: 10px;
-  width: 100%; /* [수정] 영역 전체를 버튼으로 (화살표는 오른쪽 끝으로) */
+  width: 100%; /* 영역 전체를 버튼으로 (화살표는 오른쪽 끝으로) */
   padding: 6px 8px;
   border: none;
   border-radius: 10px;
@@ -429,7 +424,7 @@ p {
   width: var(--sidebar-width);
   flex-shrink: 0;
   overflow-y: auto;
-  /* [수정] 가로 스크롤 막기 - 기존: 메뉴 이름이 길면 사이드바 아래에 가로 스크롤바가 생겼음 */
+  /* 가로 스크롤 막기 - 기존: 메뉴 이름이 길면 사이드바 아래에 가로 스크롤바가 생겼음 */
   overflow-x: hidden;
   padding: 14px 10px 20px;
   background: var(--bg);
@@ -1177,6 +1172,555 @@ p {
   border-radius: var(--radius);
 }
 
+.search-result {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.search-result-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+/* 순위 동그라미 (1, 2, 3 ...) */
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--dark-button);
+  color: var(--dark-button-text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* 유사도 점수 (막대 + 숫자) - 오른쪽 끝에 배치 */
+.score {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.score-bar {
+  width: 120px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.score-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.search-result-text {
+  font-size: 13.5px;
+  line-height: 1.7;
+  white-space: pre-wrap; /* 원문의 줄바꿈을 그대로 보여줌 */
+  word-break: break-word;
+}
+
+/* 질문 단어 강조 표시 */
+mark {
+  padding: 0 2px;
+  border-radius: 3px;
+  background: var(--warning-soft);
+  color: inherit;
+  font-weight: 700;
+}
+
+
+/* ───────────── 19-2. 챗봇 화면 + AI 답변 ───────────── */
+/* 챗봇 화면: 대화 카드가 화면 높이를 꽉 채우도록 */
+.chat-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  /* 왼쪽 대화 목록(240px)이 추가되어 최대 너비를 넓힘 (기존: 1100px) */
+  max-width: 1360px;
+}
+
+.chat-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 420px;
+  min-width: 0; /* 긴 글이 있어도 대화 화면이 오른쪽으로 넘치지 않도록 */
+}
+
+/* 왼쪽 대화 목록 + 오른쪽 대화 화면 (components/chat/ConversationList.tsx) */
+.chat-layout {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-height: 0; /* 화면 높이 안에서 각 영역이 따로 스크롤되도록 */
+}
+
+.chat-page > .alert {
+  margin-bottom: 14px;
+}
+
+.conversation-panel {
+  display: flex;
+  flex-direction: column;
+  width: 240px;
+  flex-shrink: 0;
+  min-height: 0;
+}
+
+.conversation-panel-head {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* 대화방 목록 (길어지면 이 영역만 스크롤) */
+.conversation-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.conversation-empty {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 6px;
+  font-size: 12.5px;
+  color: var(--text-subtle);
+}
+
+.conversation-empty.error {
+  color: var(--danger);
+}
+
+/* 대화방 1개 */
+.conversation-item {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 4px;
+  border-radius: 8px;
+}
+
+.conversation-item:hover {
+  background: var(--surface-hover);
+}
+
+/* 지금 열려 있는 대화방 */
+.conversation-item.active {
+  background: var(--brand-soft);
+}
+
+.conversation-item.editing {
+  padding: 4px;
+}
+
+.conversation-item.editing .input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  font-size: 12.5px;
+}
+
+/* 대화방 열기 버튼 (제목 + 마지막 대화 시각) */
+.conversation-open {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  padding: 8px 6px 8px 10px;
+  border: none;
+  background: none;
+  color: var(--text);
+  text-align: left;
+}
+
+/* 제목이 길면 한 줄로 자르고 "…" 표시 (전체 제목은 마우스를 올리면 보임) */
+.conversation-title {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.conversation-item.active .conversation-title {
+  color: var(--brand);
+}
+
+.conversation-date {
+  font-size: 11px;
+  color: var(--text-subtle);
+}
+
+/* 연필/휴지통 버튼: 평소에는 숨기고, 마우스를 올렸거나 열려 있는 대화방에서만 보임 */
+.conversation-actions {
+  display: none;
+  gap: 2px;
+}
+
+.conversation-item:hover .conversation-actions,
+.conversation-item.active .conversation-actions {
+  display: flex;
+}
+
+.conversation-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.conversation-action:hover:not(:disabled) {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.conversation-action.danger:hover:not(:disabled) {
+  color: var(--danger);
+}
+
+/* 스크롤 상자와 내용 영역을 분리
+ *  - .chat-messages는 스크롤만, .chat-messages-content가 메시지 배치를 담당
+ *    (내용 영역의 높이 변화를 감지해서 자동 스크롤하기 위함) */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px 22px 10px;
+}
+
+.chat-messages-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.chat-msg {
+  display: flex;
+  gap: 10px;
+  max-width: 88%;
+}
+
+.chat-msg.user {
+  align-self: flex-end;
+}
+
+.chat-msg .chat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.chat-avatar {
+  width: 34px;
+  height: 34px;
+  font-size: 13px;
+}
+
+.chat-bubble {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chat-msg.user .chat-bubble {
+  background: var(--dark-button);
+  color: var(--dark-button-text);
+  border-color: var(--dark-button);
+}
+
+.chat-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* 밑줄 없는 글자 버튼 (예: "근거 문서 5건") */
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--info);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* 근거 문서 카드 (챗봇 화면, AI 창 공통 - components/chat/SourceCards.tsx)
+   - 답변 위에 표시, 유사도는 제목 위 왼쪽의 색깔 캡슐,
+     원문은 "자세히 보기"로 펼침, 읽는 중인 문서는 빨간 테두리 */
+.source-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  white-space: normal; /* 말풍선(pre-wrap) 안에 들어가도 줄바꿈 문자가 그대로 보이지 않도록 */
+}
+
+/* AI 창: 말풍선 안에서 근거 카드와 아래 답변 사이를 띄움 */
+.msg-bubble .source-cards {
+  margin-bottom: 12px;
+}
+
+.source-cards-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.source-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 지금 읽고 있을 것으로 예상되는 문서 => 빨간 테두리 */
+.source-card.reading {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 1px var(--brand); /* 테두리를 2px처럼 두껍게 보이게 (카드 크기는 그대로) */
+}
+
+/* 답변의 [n]을 눌러서 선택한 문서 => 파란 테두리 (빨간 "읽는 중"과 구분) */
+.source-card.focused {
+  border-color: var(--info);
+  background: var(--info-soft);
+}
+
+/* 1줄: 번호 + 유사도 캡슐 + 읽는 중/읽음 */
+.source-card-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.source-card-top .citation {
+  margin: 0;
+}
+
+/* 유사도 캡슐 (타원형) - 점수가 높을수록 초록 -> 파랑 -> 주황 */
+.score-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 9px;
+  border-radius: 999px; /* 아주 크게 둥글리면 양 끝이 반원인 캡슐 모양이 됨 */
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; /* .mono 와 같은 고정폭 글꼴 */
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap; /* 숫자가 잘리거나 줄바뀜되지 않도록 */
+}
+
+.score-pill.high {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.score-pill.mid {
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.score-pill.low {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+/* 읽는 중 / 읽음 표시 */
+.source-card-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.source-card-state.reading {
+  color: var(--brand);
+}
+
+.source-card-state.read {
+  color: var(--text-subtle);
+}
+
+/* 2줄: 파일명 · 청크 번호 */
+.source-card-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  font-weight: 700;
+  overflow-wrap: anywhere; /* 긴 파일명은 아무 곳에서나 줄바꿈 (가로로 넘치지 않도록) */
+}
+
+.source-card-title svg {
+  margin-top: 3px;
+}
+
+/* 원문 (자세히 보기를 눌렀을 때만 보임) */
+.source-card-text {
+  width: 100%;
+  margin-top: 2px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border);
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chat-input {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 14px 18px 8px;
+  border-top: 1px solid var(--border);
+}
+
+.chat-input textarea {
+  flex: 1;
+  height: auto;
+  min-height: 48px;
+  max-height: 160px;
+  padding: 10px 12px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.chat-input .btn {
+  height: 48px;
+}
+
+.chat-footnote {
+  padding: 0 18px 12px;
+  font-size: 11.5px;
+  color: var(--text-subtle);
+}
+
+/* AI 답변 글 */
+.answer-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 답변 안의 출처 번호 [1] => 작은 동그라미 버튼 */
+.citation {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  margin: 0 2px;
+  padding: 0 4px;
+  border: none;
+  border-radius: 999px;
+  background: var(--info-soft);
+  color: var(--info);
+  font-size: 11px;
+  font-weight: 800;
+  vertical-align: 1px;
+}
+
+.citation:disabled {
+  cursor: default;
+}
+
+/* 답변 진행 단계 표시 (① 검색 ② 문서 읽기 ③ 답변 작성) */
+.progress-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.progress-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-subtle);
+}
+
+.progress-step.active {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.progress-step.done {
+  color: var(--text-muted);
+}
+
+.progress-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+
+.progress-step.done .progress-icon {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.progress-time {
+  margin-left: auto;
+  padding-left: 16px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* 답변 작성 중 깜빡이는 커서 */
+.typing-cursor {
+  margin-left: 1px;
+  color: var(--brand);
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
 /* ───────────── 20. 로그인 / 회원가입 화면 ───────────── */
 .auth-page {
   display: flex;
@@ -1210,8 +1754,8 @@ p {
 
 /* ───────────── 21. AI Copilot 창 (오른쪽) ───────────── */
 .copilot-panel {
-  /* [수정] position: relative 추가 - 왼쪽 가운데의 접기 버튼(.copilot-collapse)을
-   *        이 창을 기준으로 위치시키기 위함 */
+  /* position: relative - 왼쪽 가운데의 접기 버튼(.copilot-collapse)을
+   * 이 창을 기준으로 위치시키기 위함 */
   position: relative;
   width: var(--copilot-width);
   flex-shrink: 0;
@@ -1221,9 +1765,8 @@ p {
   border-left: 1px solid var(--border);
 }
 
-/* [수정] AI 창 접기 버튼 추가 (창 왼쪽 테두리의 세로 가운데에 붙은 ">" 손잡이)
- *  - 기존: 창 제목 오른쪽에 접기 아이콘 버튼이 있었음
- *  - 변경: 왼쪽 테두리 바깥으로 튀어나온 손잡이 모양 버튼으로 변경 */
+/* AI 창 접기 버튼 (창 왼쪽 테두리의 세로 가운데에 붙은 ">" 손잡이)
+ *  - 왼쪽 테두리 바깥으로 튀어나온 손잡이 모양 버튼으로 */
 .copilot-collapse {
   position: absolute;
   top: 50%;
@@ -1285,13 +1828,25 @@ p {
   color: var(--text-muted);
 }
 
+/* 스크롤 상자와 내용 영역을 분리 (챗봇 화면과 같은 방식)
+ *  - .copilot-messages는 스크롤만, .copilot-messages-content가 메시지 배치를 담당 */
 .copilot-messages {
   flex: 1;
   overflow-y: auto;
   padding: 16px 14px;
+}
+
+.copilot-messages-content {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+/* AI 창 답변 아래의 단계별 걸린 시간 */
+.msg-progress {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 .msg {
@@ -1439,6 +1994,16 @@ p {
 }
 
 @media (max-width: 900px) {
+  /* 좁은 화면에서는 대화 목록을 대화 화면 위로 올리고 높이를 제한 */
+  .chat-layout {
+    flex-direction: column;
+  }
+
+  .conversation-panel {
+    width: auto;
+    max-height: 220px;
+  }
+
   /* 좁은 화면에서는 AI 창이 본문 위에 겹쳐서 나타남 */
   .copilot-panel {
     position: fixed;
@@ -1457,7 +2022,7 @@ p {
     display: none;
   }
 
-  /* [수정] 좁은 화면에서는 AI 창이 본문 위에 겹치므로, 프로필 영역은 내용 크기만큼만 차지 */
+  /* 좁은 화면에서는 AI 창이 본문 위에 겹치므로, 프로필 영역은 내용 크기만큼만 차지 */
   .profile {
     width: auto;
   }

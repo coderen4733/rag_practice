@@ -1,6 +1,5 @@
-// [수정] 새 파일 추가 - TypeScript 설정
-//  - 기존: 없음
-//  - 변경: src 폴더의 코드를 엄격한(strict) 규칙으로 타입 검사하도록 설정
+// TypeScript 설정
+//  - src 폴더의 코드를 엄격한(strict) 규칙으로 타입 검사하도록 설정
 //  - npm run build 를 실행하면 먼저 이 설정으로 타입 검사(tsc --noEmit)를 한 뒤 빌드함
 {
   "compilerOptions": {

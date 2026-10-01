@@ -1,6 +1,5 @@
-# [수정] 새 파일 추가 - Vector DB(Qdrant) 연결 담당 코드(src/core/vector_db.py) 테스트
-#  - 기존: 없음
-#  - 변경: 컬렉션 자동 생성, 차원 확인, 클라이언트 생성 전 사용 시 에러 등을 확인
+#  * Vector DB(Qdrant) 연결 담당 코드(src/core/vector_db.py) 테스트
+#  - 컬렉션 자동 생성, 차원 확인, 클라이언트 생성 전 사용 시 에러 등을 확인
 #  - 실제 Qdrant 서버 대신 conftest.py의 vector_db_client(메모리 모드)를 사용
 
 import pytest
@@ -63,9 +62,8 @@ def test_get_client_before_init(monkeypatch):
 
 
 # ─────────────────────────────────────────────
-# [수정] 문서 청크 저장/삭제/개수 세기 테스트 추가
-#  - 기존: 없음
-#  - 변경: upsert_document_chunks, delete_document_chunks, count_document_chunks 확인
+#  * 문서 청크 저장/삭제/개수 세기 테스트
+#  - upsert_document_chunks, delete_document_chunks, count_document_chunks 확인
 # ─────────────────────────────────────────────
 # 테스트용 가짜 벡터 (1024차원, value로 채움)
 def vectors(count, value=0.1):
@@ -127,3 +125,56 @@ async def test_delete_document_chunks_only_target(vector_db_client):
 
     assert await vector_db.count_document_chunks(1) == 0
     assert await vector_db.count_document_chunks(2) == 1
+
+
+# ─────────────────────────────────────────────
+#  * 문서 청크 유사도 검색 테스트
+#  - search_document_chunks의 정렬, 개수 제한, 문서 필터, 결과 형식 확인
+# ─────────────────────────────────────────────
+# 방향이 서로 다른 테스트용 벡터 (index 번째 칸만 1, 나머지는 0)
+#  - 서로 다른 index의 벡터끼리는 유사도 0, 같은 index면 유사도 1
+def one_hot(index):
+    vector = [0.0] * 1024
+    vector[index] = 1.0
+    return vector
+
+
+# 가장 비슷한 청크가 1등, 결과는 유사도 높은 순서
+async def test_search_document_chunks_sorted(vector_db_client):
+    # 청크 0: 0번 방향 / 청크 1: 0번과 1번 사이 방향 / 청크 2: 2번 방향
+    mixed = [0.0] * 1024
+    mixed[0], mixed[1] = 0.6, 0.8
+    await vector_db.upsert_document_chunks(
+        1, "a.md", ["정확히 같음", "조금 비슷함", "전혀 다름"], [one_hot(0), mixed, one_hot(2)]
+    )
+
+    hits = await vector_db.search_document_chunks(one_hot(0), limit=3)
+
+    assert [hit.text for hit in hits] == ["정확히 같음", "조금 비슷함", "전혀 다름"]
+    assert hits[0].score == pytest.approx(1.0)
+    assert hits[1].score == pytest.approx(0.6)
+    assert hits[0].document_id == 1
+    assert hits[0].filename == "a.md"
+    assert hits[0].chunk_index == 0
+
+
+# limit => 가져오는 개수 제한
+async def test_search_document_chunks_limit(vector_db_client):
+    await vector_db.upsert_document_chunks(
+        1, "a.md", ["0", "1", "2", "3"], [one_hot(i) for i in range(4)]
+    )
+
+    hits = await vector_db.search_document_chunks(one_hot(0), limit=2)
+
+    assert len(hits) == 2
+
+
+# document_ids => 지정한 문서의 청크만 검색 (더 비슷한 청크가 다른 문서에 있어도 제외)
+async def test_search_document_chunks_filter(vector_db_client):
+    await vector_db.upsert_document_chunks(1, "a.md", ["문서1"], [one_hot(0)])
+    await vector_db.upsert_document_chunks(2, "b.md", ["문서2"], [one_hot(1)])
+    await vector_db.upsert_document_chunks(3, "c.md", ["문서3"], [one_hot(2)])
+
+    hits = await vector_db.search_document_chunks(one_hot(0), limit=10, document_ids=[2, 3])
+
+    assert {hit.document_id for hit in hits} == {2, 3}

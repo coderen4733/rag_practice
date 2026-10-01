@@ -5,8 +5,7 @@ from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
 #  * Base를 이 파일에서 직접 만들지 않고, 공통 Base(src/core/base.py)를 가져와서 사용
-#  - 기존: class Base(AsyncAttrs, DeclarativeBase): pass 를 이 파일 안에서 정의
-#  - 변경: 모든 모델이 같은 Base를 공유해야 alembic이 모든 테이블을 한 번에 인식할 수 있음
+#  - 모든 모델이 같은 Base를 공유해야 alembic이 모든 테이블을 한 번에 인식할 수 있음
 from src.core.base import Base
 from src.services.iam.user.enums import UserRole
 

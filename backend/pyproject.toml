@@ -8,9 +8,9 @@ requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.20.0",
     "celery[redis]>=5.6.3",
-    # [수정] python-jose가 설치해 주던 cryptography를 직접 설치하도록 추가
+    #  * python-jose가 설치해 주던 cryptography를 직접 설치하도록 추가
     #  - src/core/security.py의 Scrypt(비밀번호 해시)가 cryptography를 사용함
-    #    ([수정] 파일 위치 변경: 기존 src/common/security.py -> 변경 src/core/security.py)
+    #    (파일 위치 변경: 기존 src/common/security.py -> 변경 src/core/security.py)
     #  - 기존에는 python-jose[cryptography]를 통해 "간접적으로" 설치되고 있었기 때문에,
     #    python-jose를 제거하면서 직접 명시하지 않으면 비밀번호 해시 코드가 깨짐
     "cryptography>=50.0.1",
@@ -19,21 +19,20 @@ dependencies = [
     "httpx>=0.28.1",
     "prometheus-client>=0.26.0",
     "psycopg[binary]>=3.3.5",
-    # [수정] pydantic -> pydantic[email]
+    # pydantic -> pydantic[email]
     #  - 스키마에서 사용하는 EmailStr 타입은 email-validator 패키지가 있어야 동작함
     #  - [email]을 붙이면 email-validator가 함께 설치됨 (없으면 서버 시작 시 ImportError 발생)
     "pydantic[email]>=2.13.5",
     "pydantic-settings>=2.15.0",
-    # [수정] python-jose[cryptography] -> pyjwt
+    #  * python-jose[cryptography] -> pyjwt
     #  - python-jose는 유지보수가 거의 중단되었고 보안 취약점(CVE) 이력이 있음
     #  - FastAPI 공식 문서도 JWT 처리 라이브러리를 PyJWT로 변경함
     "pyjwt>=2.15.0",
     "qdrant-client>=1.19.1",
     "sqlalchemy>=2.0.54",
     "uvicorn[standard]>=0.53.0",
-    # [수정] python-multipart 추가
-    #  - 기존: 없음
-    #  - 변경: FastAPI가 "파일 업로드(multipart/form-data)" 요청을 읽으려면 이 패키지가 필요함
+    #  * python-multipart
+    #  - FastAPI가 "파일 업로드(multipart/form-data)" 요청을 읽으려면 이 패키지가 필요함
     #    (문서 등록 API의 UploadFile에서 사용, 없으면 서버 시작 시 에러)
     "python-multipart>=0.0.32",
 ]
@@ -66,7 +65,7 @@ line-length = 100
 # 코드를 더 깔끔하게 강제하기 위한 린트 규칙 활성화 (선택 사항)
 select = ["E", "F", "I", "UP", "B"]
 
-#  * ruff 파일별 예외 규칙 추가
+#  * ruff 파일별 예외 규칙
 #  - tests/conftest.py 에서만 E402(import는 파일 맨 위에 있어야 함) 규칙을 끔
 #    => conftest.py는 "테스트용 환경 변수를 먼저 설정한 뒤" src를 import 해야 하기 때문
 #       (src를 먼저 import 하면 .env의 실제 DB 주소, 실제 비밀키가 먼저 읽혀버림)
@@ -86,9 +85,8 @@ pythonpath = ["."]
 asyncio_mode = "auto"
 # fixture가 사용하는 이벤트 루프를 테스트마다 새로 만듦 (테스트끼리 영향을 주지 않도록)
 asyncio_default_fixture_loop_scope = "function"
-# [수정] 테스트 결과에 표시하지 않을 경고 설정 추가
-#  - 기존: 없음
-#  - 변경: 테스트용 메모리 Qdrant에서 나오는 "payload 색인은 효과가 없다"는 경고를 숨김
+#  * 테스트 결과에 표시하지 않을 경고 설정
+#  - 테스트용 메모리 Qdrant에서 나오는 "payload 색인은 효과가 없다"는 경고를 숨김
 #    => 메모리 Qdrant는 원래 색인 기능이 없어서 나오는 경고일 뿐, 실제 Qdrant에서는 정상 동작
 filterwarnings = [
     "ignore:Payload indexes have no effect in the local Qdrant",

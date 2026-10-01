@@ -1,6 +1,5 @@
-// [수정] 새 파일 추가 - 화면 맨 위 헤더
-//  - 기존: 없음
-//  - 변경: 로고, 사이드바 접기 버튼, 현재 위치(경로) 표시, 다크 모드 버튼, 알림, AI 창 버튼, 프로필 메뉴
+// 화면 맨 위 헤더
+//  - 로고, 사이드바 접기 버튼, 현재 위치(경로) 표시, 다크 모드 버튼, 알림, AI 창 버튼, 프로필 메뉴
 
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -25,9 +24,8 @@ import { findMenuByPath } from "../../constants/menu";
 import { ROLE_LABELS, displayName } from "../../utils/format";
 
 interface HeaderProps {
-  // [수정] sidebarCollapsed 추가
-  //  - 기존: onToggleSidebar만 받음
-  //  - 변경: 사이드바가 접혔는지도 받아서, 헤더의 로고 영역 너비를 사이드바와 똑같이 맞춤
+  // sidebarCollapsed
+  //  - 사이드바가 접혔는지도 받아서, 헤더의 로고 영역 너비를 사이드바와 똑같이 맞춤
   sidebarCollapsed: boolean; // 사이드바 접힘 여부
   onToggleSidebar: () => void; // 사이드바 접기/펴기
 }
@@ -82,10 +80,9 @@ export function Header({ sidebarCollapsed, onToggleSidebar }: HeaderProps) {
     <header className="app-header">
       {/* 왼쪽: 로고 + 사이드바 버튼 + 현재 위치 */}
       <div className="header-left">
-        {/* [수정] 로고와 사이드바 버튼을 사이드바와 같은 너비의 영역(.header-brand-area)으로 묶음
-             - 기존: 로고, 버튼, 세로선(<span className="header-divider" />)을 간격만 두고 나열
-             - 변경: 영역 너비 = 사이드바 너비, 세로선은 영역 오른쪽 끝에 CSS(::after)로 그림
-                     => 세로선과 사이드바 오른쪽 끝이 항상 같은 위치 (사이드바를 접어도 함께 움직임) */}
+        {/* 로고와 사이드바 버튼을 사이드바와 같은 너비의 영역(.header-brand-area)으로 묶음
+             - 영역 너비 = 사이드바 너비, 세로선은 영역 오른쪽 끝에 CSS(::after)로 그림
+               => 세로선과 사이드바 오른쪽 끝이 항상 같은 위치 (사이드바를 접어도 함께 움직임) */}
         <div className={`header-brand-area ${sidebarCollapsed ? "collapsed" : ""}`}>
           <button
             type="button"
@@ -158,7 +155,7 @@ export function Header({ sidebarCollapsed, onToggleSidebar }: HeaderProps) {
                 <span className="profile-name">{displayName(user.email)}</span>
                 <span className="profile-sub">{ROLE_LABELS[user.role]} · 온결에이아이</span>
               </span>
-              {/* [수정] profile-chevron 추가 - 넓어진 프로필 영역의 오른쪽 끝에 화살표를 붙이기 위함 */}
+              {/* profile-chevron - 넓어진 프로필 영역의 오른쪽 끝에 화살표를 붙이기 위함 */}
               <ChevronDown size={16} className="muted profile-chevron" />
             </button>
 

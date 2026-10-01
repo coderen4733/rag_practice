@@ -6,8 +6,7 @@ Create Date: 2026-09-30 16:00:00.000000
 
 """
 
-# [수정] documents 테이블 생성 마이그레이션 (새 파일)
-#  - 기존: 없음
+#  * documents 테이블 생성 마이그레이션
 #  - 변경: 업로드된 문서의 정보(파일명, 처리 상태, 청크 수 등)를 저장하는 documents 테이블 생성
 #  - src/services/rag/document/models.py 의 Document 모델과 똑같은 구조
 #  - 적용 명령어: uv run alembic upgrade head
@@ -62,9 +61,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         # 업로드한 사용자가 삭제되면 uploaded_by만 NULL로 비움 (문서는 유지)
-        sa.ForeignKeyConstraint(
-            ["uploaded_by"], ["rag_practice.users.id"], ondelete="SET NULL"
-        ),
+        sa.ForeignKeyConstraint(["uploaded_by"], ["rag_practice.users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
         schema="rag_practice",
     )

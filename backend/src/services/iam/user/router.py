@@ -1,6 +1,5 @@
 from typing import Annotated  # 타입에 추가 정보를 붙일 수 있게 해주는 파이썬 표준 기능
 
-# [수정] Query import 추가 (쿼리 파라미터를 Pydantic 모델로 한 번에 받기 위함)
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,7 +32,7 @@ async def create_user(
     #  Annotated[타입, 추가정보] 방식: FastAPI 공식 문서에서 현재 권장하는 방식
     #  "session은 AsyncSession 타입이고, get_db_session으로 값을 채워줘"라는 의미
     session: Annotated[AsyncSession, Depends(get_db_session)],
-    #  관리자(admin) 권한 검사 추가
+    #  관리자(admin) 권한 검사
     #  액세스 토큰의 주인이 admin일 때만 이 API가 실행됨
     #  토큰이 없거나 잘못됨 => 401 / 로그인은 했지만 admin이 아님 => 403
     #  current_user에는 "지금 요청한 관리자"의 User 객체가 들어옴
@@ -119,7 +118,7 @@ async def update_user_active(
     }
 
 
-# 사용자(User) 권한(Role) 변경(U) API 추가 - 관리자(admin) 전용
+# 사용자(User) 권한(Role) 변경(U) API - 관리자(admin) 전용
 @user_router.patch(
     "/{user_id}/role",
     response_model=ResponseSchema[UserUpdateRes],

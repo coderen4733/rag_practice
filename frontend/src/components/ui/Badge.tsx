@@ -1,6 +1,5 @@
-// [수정] 새 파일 추가 - 상태 배지 (예: "처리 완료", "승인 대기")
-//  - 기존: 없음
-//  - 변경: tone(색상)에 따라 global.css의 .badge-xxx 스타일을 적용하는 작은 부품
+// 상태 배지 (예: "처리 완료", "승인 대기")
+//  - tone(색상)에 따라 global.css의 .badge-xxx 스타일을 적용하는 작은 부품
 
 import type { ReactNode } from "react";
 

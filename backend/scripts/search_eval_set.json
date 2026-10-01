@@ -1,0 +1,90 @@
+{
+  "description": "검색 품질 평가용 질문 세트 - 프로젝트 최상위 md 폴더의 테스트 문서 3개를 등록한 상태에서 사용",
+  "cases": [
+    {
+      "question": "부모님이 돌아가시면 휴가는 며칠이고 경조금은 얼마인가요?",
+      "expected_document": "01_",
+      "expected_keyword": "본인·배우자의 부모 | 100만 원"
+    },
+    {
+      "question": "법에서 정한 부모 사망 시 경조사휴가 최소 일수는?",
+      "expected_document": "02_",
+      "expected_keyword": "본인 또는 배우자의 부모의 사망"
+    },
+    {
+      "question": "배우자가 출산하면 회사에서 휴가를 며칠 주나요?",
+      "expected_document": "01_",
+      "expected_keyword": "법정 15일 + 회사 5일"
+    },
+    {
+      "question": "반반차는 한 달에 몇 번까지 쓸 수 있어?",
+      "expected_document": "01_",
+      "expected_keyword": "한 달에 최대 4회"
+    },
+    {
+      "question": "직원을 해고하려면 며칠 전에 미리 알려줘야 하나요?",
+      "expected_document": "02_",
+      "expected_keyword": "45일 전"
+    },
+    {
+      "question": "2031년 AI 에이전트 시장 규모 전망은?",
+      "expected_document": "03_",
+      "expected_keyword": "6조 2천억 원"
+    },
+    {
+      "question": "결 온프렘 구축 기간을 얼마나 줄이는 것이 목표야?",
+      "expected_document": "03_",
+      "expected_keyword": "12주에서 6주"
+    },
+    {
+      "question": "신입사원 수습 기간과 그동안의 급여는?",
+      "expected_document": "01_",
+      "expected_keyword": "수습 기간은 3개월"
+    },
+    {
+      "question": "연차 하루 쓰려면 며칠 전에 신청해야 하나요?",
+      "expected_document": "01_",
+      "expected_keyword": "3근무일 전"
+    },
+    {
+      "question": "고객 접대비는 한 사람당 얼마까지 쓸 수 있나요?",
+      "expected_document": "01_",
+      "expected_keyword": "7만 원"
+    },
+    {
+      "question": "일주일에 최대 몇 시간까지 일할 수 있나요?",
+      "expected_document": "02_",
+      "expected_keyword": "38시간"
+    },
+    {
+      "question": "퇴직금은 어떻게 계산하나요?",
+      "expected_document": "02_",
+      "expected_keyword": "32일분"
+    },
+    {
+      "question": "직장 내 괴롭힘 신고를 받으면 언제까지 조사를 시작해야 해?",
+      "expected_document": "02_",
+      "expected_keyword": "10일 이내"
+    },
+    {
+      "question": "우리 회사의 주요 경쟁사는 어디야?",
+      "expected_document": "03_",
+      "expected_keyword": "딥라인솔루션"
+    },
+    {
+      "question": "폐쇄망 구축을 요구하는 고객은 얼마나 되나요?",
+      "expected_document": "03_",
+      "expected_keyword": "58%"
+    },
+    {
+      "question": "재택근무는 일주일에 며칠까지 가능한가요?",
+      "expected_document": "01_",
+      "expected_keyword": "주 최대"
+    },
+    {
+      "question": "2031년 매출 목표는 얼마야?",
+      "expected_document": "03_",
+      "expected_keyword": "1,150억 원"
+    }
+  ]
+}

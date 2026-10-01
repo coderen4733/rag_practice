@@ -1,6 +1,5 @@
-// [수정] 새 파일 추가 - 문서(document) API 호출 함수
-//  - 기존: 없음
-//  - 변경: 백엔드 /documents/* API (업로드, 목록, 상세, 삭제)
+//  * 문서(document) API 호출 함수
+//  - 백엔드 /documents/* API (업로드, 목록, 상세, 삭제)
 
 import { request, unwrap } from "./client";
 import type {

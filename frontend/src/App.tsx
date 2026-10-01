@@ -1,6 +1,5 @@
-// [수정] 새 파일 추가 - 주소(URL)와 화면(페이지) 연결
-//  - 기존: 없음
-//  - 변경: 주소마다 어떤 화면을 보여줄지 정함
+// 주소(URL)와 화면(페이지) 연결
+//  - 주소마다 어떤 화면을 보여줄지 정함
 //    - /login           : 로그인/회원가입 (로그인한 사용자는 대시보드로 보냄)
 //    - 그 외 모든 주소  : 로그인이 필요함 (로그인 안 했으면 /login 으로 보냄)
 //    - 관리 메뉴        : admin, manager 만 볼 수 있음
@@ -19,6 +18,8 @@ import { ComingSoonPage } from "./pages/ComingSoonPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { DocumentsPage } from "./pages/DocumentsPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { SearchPage } from "./pages/SearchPage";
+import { ChatPage } from "./pages/ChatPage";
 import { SystemPage } from "./pages/SystemPage";
 import { UsersPage } from "./pages/UsersPage";
 
@@ -89,6 +90,10 @@ export function App() {
         >
           <Route index element={<DashboardPage />} />
           <Route path="documents" element={<DocumentsPage />} />
+          {/* 문서 검색 화면 연결 (기존: 준비 중 안내 화면) */}
+          <Route path="search" element={<SearchPage />} />
+          {/* 챗봇 화면 연결 (기존: 준비 중 안내 화면) */}
+          <Route path="chat" element={<ChatPage />} />
           <Route path="account" element={<AccountPage />} />
           <Route
             path="admin/users"

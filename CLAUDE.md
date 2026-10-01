@@ -34,6 +34,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **마이그레이션 적용**: `uv run alembic upgrade head`
 - **린트 검사**: `uv run ruff check .`
 - **테스트 실행**: `uv run pytest` (테스트 코드는 `backend/tests/`, 실제 DB 대신 메모리 SQLite 사용)
+- **챗봇 답변 품질 평가**: `uv run python -m scripts.evaluate_chat` (실제 검색 + LLM으로 `scripts/chat_eval_set.json`의 질문에 답변을 만들어 정답 값 포함, 지어내기 방지, 출처 표시, 한자 섞임, 응답 시간을 출력. 프롬프트(`src/services/rag/chat/prompt.py`)·모델을 바꾼 뒤 비교용)
+- **개발용 LLM**: 맥북에 설치한 Ollama 앱(GPU, 포트 11434)에 `ollama pull qwen3.5:9b`로 받은 모델 사용 (`.env`의 `LLM_BASE_URL=http://localhost:11434/v1`)
+- **검색 품질 평가**: `uv run python -m scripts.evaluate_search` (실제 Qdrant + 임베딩 서버로 `scripts/search_eval_set.json`의 질문을 검색해 Hit@1, Recall@5, MRR 등을 출력. 청크 크기·임베딩 모델 등을 바꾼 뒤 품질 비교용)
 
 ### 프론트엔드 (기능 테스트용 화면)
 프론트엔드 개발 시에는 `frontend/` 디렉토리에서 진행합니다. (React + TypeScript + Vite, 아이콘 lucide-react, 폰트 pretendard)

@@ -1,6 +1,5 @@
-// [수정] 새 파일 추가 - 프론트엔드 시작점
-//  - 기존: 없음
-//  - 변경: index.html의 <div id="root"> 안에 React 앱을 그림
+// 프론트엔드 시작점
+//  - index.html의 <div id="root"> 안에 React 앱을 그림
 //    - Provider 순서: 테마 -> 로그인 상태 -> AI 창 (안쪽 부품은 바깥 부품의 값을 사용할 수 있음)
 
 import { StrictMode } from "react";

@@ -1,5 +1,4 @@
-// [수정] 새 파일 추가 - 없는 주소로 들어왔을 때 보여주는 화면 (404)
-//  - 기존: 없음
+// 없는 주소로 들어왔을 때 보여주는 화면 (404)
 
 import { Link } from "react-router-dom";
 import { SearchX } from "lucide-react";

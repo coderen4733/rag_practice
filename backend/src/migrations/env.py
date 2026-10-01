@@ -1,10 +1,5 @@
 #  * 이 파일 전체를 "비동기(async) 엔진" 방식으로 다시 작성함
-#  - 기존: alembic init 으로 만든 기본(동기) 템플릿 그대로
-#    1) target_metadata = None => autogenerate가 우리 모델(테이블)을 전혀 인식하지 못함
-#    2) DB 주소를 alembic.ini의 가짜 주소(driver://user:pass@...)에서 읽음 => 실제 DB 연결 불가
-#    3) 동기 엔진(engine_from_config) 사용 => 우리 프로젝트는 비동기 드라이버(psycopg async) 사용
-#    4) rag_practice 스키마 설정이 없음
-#  - 변경: 위 4가지를 모두 해결 (alembic init -t async 템플릿을 기반으로 작성)
+#  alembic init -t async 템플릿을 기반으로 작성
 #
 # 📌 사용법 (backend/ 폴더에서 실행)
 #  - 마이그레이션 파일 자동 생성: uv run alembic revision --autogenerate -m "변경 내용 설명"
@@ -19,7 +14,6 @@ from sqlalchemy import pool, text
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
 
-# [수정] 공통 Base, 스키마 이름, 환경변수 설정 import
 from src.core.base import TARGET_SCHEMA, Base
 from src.core.config import get_settings
 
@@ -29,10 +23,7 @@ from src.core.config import get_settings
 #  - import만 하고 코드에서 직접 사용하지는 않으므로 "noqa: F401"로 ruff 경고를 끔
 from src.services.iam.auth import models as auth_models  # noqa: F401
 from src.services.iam.user import models as user_models  # noqa: F401
-
-# [수정] 문서(Document) 모델 import 추가
-#  - 기존: auth, user 모델만 import
-#  - 변경: documents 테이블을 alembic이 인식하도록 추가
+from src.services.rag.chat import models as chat_models  # noqa: F401
 from src.services.rag.document import models as document_models  # noqa: F401
 
 # this is the Alembic Config object, which provides
@@ -88,7 +79,7 @@ CONFIGURE_OPTIONS = {
 # 예) uv run alembic upgrade head --sql
 def run_migrations_offline() -> None:
     context.configure(
-        url=settings.async_db_url,  # alembic.ini 주소 -> .env의 DB 주소로 변경
+        url=settings.async_db_url,  # alembic.ini 주소 -> .env의 DB 주소로
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         **CONFIGURE_OPTIONS,

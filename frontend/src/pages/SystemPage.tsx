@@ -1,13 +1,14 @@
-// [수정] 새 파일 추가 - 시스템 상태 화면 (admin, manager 전용)
-//  - 기존: 없음
-//  - 변경: 백엔드 서버 상태(GET /health-check)와 프론트엔드 연결 정보를 보여줌
+// 시스템 상태 화면 (admin, manager 전용)
+//  - 백엔드 서버 상태(GET /health-check)와 프론트엔드 연결 정보를 보여줌
 //    - Vector DB, 임베딩 서버는 백엔드가 "시작할 때" 연결을 확인하므로,
 //      백엔드가 정상이면 두 서버도 정상적으로 연결된 상태라는 뜻
 
 import { useCallback, useEffect, useState } from "react";
 import { Activity, RefreshCw, Server } from "lucide-react";
 
+import { getChatStatus } from "../api/chat";
 import { healthCheck } from "../api/system";
+import type { ChatStatus } from "../api/types";
 import { Badge } from "../components/ui/Badge";
 import { Alert, Spinner } from "../components/ui/Feedback";
 import { useTheme } from "../contexts/ThemeContext";
@@ -16,6 +17,8 @@ import { formatDateTime } from "../utils/format";
 export function SystemPage() {
   const { theme } = useTheme();
   const [healthy, setHealthy] = useState<boolean | null>(null);
+  // LLM 연결 상태 (null: 확인 중 또는 확인 실패)
+  const [llmStatus, setLlmStatus] = useState<ChatStatus | null>(null);
   const [checkedAt, setCheckedAt] = useState<Date | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -25,8 +28,11 @@ export function SystemPage() {
     try {
       const result = await healthCheck();
       setHealthy(result.status === "healthy");
+      // 백엔드가 정상이면 LLM 연결 상태도 확인 (GET /chat/status)
+      setLlmStatus(await getChatStatus().catch(() => null));
     } catch {
       setHealthy(false);
+      setLlmStatus(null);
     } finally {
       setCheckedAt(new Date());
       setLoading(false);
@@ -38,12 +44,17 @@ export function SystemPage() {
   }, [check]);
 
   // 표시할 연결 구성 정보
-  const components = [
+  //  - status: true(정상) / false(연결 실패) / null(확인 중) / undefined(준비중 - 아직 연결 코드 없음)
+  const components: { name: string; detail: string; status: boolean | null | undefined }[] = [
     { name: "백엔드 API (FastAPI)", detail: "GET /health-check", status: healthy },
     { name: "PostgreSQL (Supabase)", detail: "백엔드 시작 시 연결 확인", status: healthy },
     { name: "Vector DB (Qdrant)", detail: "백엔드 시작 시 연결 + 컬렉션 확인", status: healthy },
     { name: "임베딩 서버 (bge-m3, CPU)", detail: "백엔드 시작 시 임베딩 테스트", status: healthy },
-    { name: "LLM 서버", detail: "④ 챗봇 단계에서 연결 예정", status: undefined },
+    {
+      name: `LLM 서버${llmStatus ? ` (${llmStatus.model}, GPU)` : ""}`,
+      detail: llmStatus?.message ?? "모델 목록에 설정한 모델이 있는지 확인",
+      status: healthy === false ? false : llmStatus ? llmStatus.available : null,
+    },
   ];
 
   return (

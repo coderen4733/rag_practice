@@ -1,6 +1,5 @@
-// [수정] 새 파일 추가 - 인증(auth) API 호출 함수
-//  - 기존: 없음
-//  - 변경: 백엔드 /auth/* API (회원가입, 로그인, 로그아웃, 비밀번호 변경)
+// 인증(auth) API 호출 함수
+//  - 백엔드 /auth/* API (회원가입, 로그인, 로그아웃, 비밀번호 변경)
 
 import { request, unwrap } from "./client";
 import type { ApiResponse, ChangePasswordResult, CreatedUser, TokenPair } from "./types";

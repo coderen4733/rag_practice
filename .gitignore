@@ -6,7 +6,7 @@
 # 환경 변수 (보안)
 **/.env
 **/.env.*
-# [수정] .env.example 은 git에 올리도록 예외 처리 (! = "무시하지 말 것")
+#  .env.example 은 git에 올리도록 예외 처리 (! = "무시하지 말 것")
 #  - 위의 **/.env.* 규칙 때문에 .env.example 까지 무시되고 있었음
 #  - .env.example: 실제 값 없이 "어떤 환경 변수가 필요한지"만 적어둔 안내 파일
 #    => 팀원이 이 파일을 복사해서 자신의 .env를 만들 수 있음 (비밀값은 절대 적지 않기!)
@@ -20,16 +20,16 @@
 **/__pycache__/
 **/*.so
 
-# 린트/타입체크 캐시 (ruff, mypy) - 추가됨
+# 린트/타입체크 캐시 (ruff, mypy) 
 **/.ruff_cache/
 **/.mypy_cache/
 
-# 테스트/커버리지 캐시 (pytest 도입 대비) - 추가됨
+# 테스트/커버리지 캐시 (pytest 도입 대비) 
 **/.pytest_cache/
 **/.coverage
 **/htmlcov/
 
-# 로그 파일 - 추가됨
+# 로그 파일 
 **/*.log
 
 # IDE 설정

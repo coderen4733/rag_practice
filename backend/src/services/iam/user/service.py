@@ -87,7 +87,7 @@ async def create_user(
     return data
 
 
-# 수정 대상 사용자 조회 + 공통 검사 함수 추가
+# 수정 대상 사용자 조회 + 공통 검사 함수
 async def _get_target_user(
     session: AsyncSession,
     user_id: int,
@@ -143,7 +143,7 @@ async def update_user_active(
     return data
 
 
-# 사용자(User) 권한(Role) 변경(U) API 추가
+# 사용자(User) 권한(Role) 변경(U) API
 async def update_user_role(
     session: AsyncSession,
     user_id: int,
@@ -167,9 +167,8 @@ async def update_user_role(
     return data
 
 
-# 사용자(User) 목록 조회(R-L) API 추가
-#  - 기존: 없음 (라우터에서 user_service.read_users_list를 호출하지만 함수가 없었음)
-#  - 변경: 요청받은 필터/정렬/페이지 값으로 목록을 조회하고, 페이지 정보를 계산해서 응답
+# 사용자(User) 목록 조회(R-L) API
+#  - 요청받은 필터/정렬/페이지 값으로 목록을 조회하고, 페이지 정보를 계산해서 응답
 async def read_users_list(
     session: AsyncSession,
     query: UserReadListQuery,

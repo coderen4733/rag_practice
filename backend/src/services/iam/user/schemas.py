@@ -1,6 +1,5 @@
 from datetime import datetime
 
-# [수정] Literal import 추가
 #  - Literal["a", "b"]: 정해진 값("a" 또는 "b")만 허용하는 타입 (정렬 기준, 정렬 방향에 사용)
 from typing import Annotated, Literal
 

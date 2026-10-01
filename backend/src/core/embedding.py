@@ -1,4 +1,4 @@
-#  * 새 파일 추가 - 임베딩(Embedding) 서버 호출 담당
+#  * 임베딩(Embedding) 서버 호출 담당
 #  - 문장(텍스트)을 임베딩 서버에 보내서 벡터(숫자 목록)를 받아오는 기능
 #    => CLAUDE.md 규칙: 임베딩을 호출하는 코드는 이 파일 한 곳에만 둠
 #
@@ -33,7 +33,7 @@ class EmbeddingError(Exception):
 # 임베딩 서버용 HTTP 클라이언트 생성 - src/main.py의 lifespan에서 사용
 def init_embedding() -> None:
     global _http_client
-    # API 키가 설정된 경우에만 인증 헤더 추가 (Ollama처럼 키가 필요 없는 서버는 생략)
+    # API 키가 설정된 경우에만 인증 헤더 (Ollama처럼 키가 필요 없는 서버는 생략)
     headers = {}
     if settings.embedding_api_key:
         headers["Authorization"] = f"Bearer {settings.embedding_api_key}"

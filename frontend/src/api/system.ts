@@ -1,6 +1,5 @@
-// [수정] 새 파일 추가 - 시스템 상태 API 호출 함수
-//  - 기존: 없음
-//  - 변경: 백엔드 /health-check (서버가 살아 있는지 확인)
+// 시스템 상태 API 호출 함수
+//  - 백엔드 /health-check (서버가 살아 있는지 확인)
 
 import { request } from "./client";
 

@@ -1,6 +1,5 @@
-// [수정] 새 파일 추가 - 사용자(user) API 호출 함수
-//  - 기존: 없음
-//  - 변경: 백엔드 /users/* API (내 정보, 목록, 관리자 생성, 활성화, 권한 변경)
+// 사용자(user) API 호출 함수
+//  - 백엔드 /users/* API (내 정보, 목록, 관리자 생성, 활성화, 권한 변경)
 
 import { request, unwrap } from "./client";
 import type { ApiResponse, CreatedUser, PageResult, Role, User, UserListQuery } from "./types";

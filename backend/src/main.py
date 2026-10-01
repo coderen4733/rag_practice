@@ -17,6 +17,11 @@ from src.core.embedding import (
     close_embedding,
     init_embedding,
 )
+from src.core.llm import (
+    check_llm_connection,
+    close_llm,
+    init_llm,
+)
 from src.core.vector_db import (
     check_vector_db_connection,
     close_vector_db,
@@ -82,6 +87,25 @@ async def lifespan(app: FastAPI):
         # ON-M-F. 임베딩 서버 연결 실패
         logger.critical(f"🔴 임베딩 서버 연결에 실패했습니다. {emb_err}")
         raise  # 임베딩 서버 연결 실패 시 바로 종료되도록. 만약 서버는 그대로 두고싶다면 주석 처리
+    # ON-L. LLM 서버 연결
+    #  * LLM 서버 연결 체크
+    #  - HTTP 클라이언트 생성 -> 모델 목록에 LLM_MODEL이 있는지 확인
+    #  - ⚠️ 다른 연결과 달리, 실패해도 서버를 멈추지 않고 경고만 남김 (raise 없음)
+    #    => LLM이 없어도 로그인, 문서 등록, 문서 검색은 모두 동작하기 때문
+    #    => 공용 GPU 서버는 재시작 등으로 잠깐 꺼질 수 있음 (그동안 챗봇 API만 503 응답)
+    #  - 개발 중에는 맥북의 Ollama 앱이 켜져 있어야 함 (ollama list 로 모델 확인)
+    try:
+        # ON-L-I. LLM HTTP 클라이언트 생성 (src/core/llm.py 참고)
+        init_llm()
+        # ON-L-C. LLM 서버 연결 + 모델 확인
+        await check_llm_connection()
+        # ON-L-S. LLM 서버 연결 성공
+        logger.info(f"🟢 LLM 서버 연결에 성공했습니다. (모델: {settings.llm_model})")
+    except Exception as llm_err:
+        # ON-L-F. LLM 서버 연결 실패 (경고만 남기고 계속 진행)
+        logger.warning(
+            f"🟡 LLM 서버 연결에 실패했습니다. 챗봇 기능만 사용할 수 없습니다. {llm_err}"
+        )
     # ON-E. App 실행
     yield
 
@@ -114,6 +138,15 @@ async def lifespan(app: FastAPI):
     except Exception as emb_err:
         # OFF-M-F. 임베딩 서버 연결 정리 실패
         logger.error(f"⛔️ 임베딩 서버 연결 정리에 실패했습니다. {emb_err}")
+    # OFF-L. LLM 서버 연결 정리
+    try:
+        # OFF-L-C. LLM HTTP 클라이언트 클로즈
+        await close_llm()
+        # OFF-L-S. LLM 서버 연결 정리 성공
+        logger.info("❎ LLM 서버 연결이 종료되었습니다.")
+    except Exception as llm_err:
+        # OFF-L-F. LLM 서버 연결 정리 실패
+        logger.error(f"⛔️ LLM 서버 연결 정리에 실패했습니다. {llm_err}")
 
 
 # L-2. FastAPI 인스턴스 생성 시 lifespan(L-1)을 따름

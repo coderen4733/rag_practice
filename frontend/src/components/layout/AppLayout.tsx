@@ -1,6 +1,5 @@
-// [수정] 새 파일 추가 - 로그인 후 화면의 전체 틀
-//  - 기존: 없음
-//  - 변경: [헤더] + [사이드바 | 본문 | AI Copilot 창] 배치
+// 로그인 후 화면의 전체 틀
+//  - [헤더] + [사이드바 | 본문 | AI Copilot 창] 배치
 //    - <Outlet />: 현재 주소에 맞는 페이지(대시보드, 문서 관리 등)가 이 자리에 그려짐
 //    - AI 창을 접으면 화면 오른쪽 가장자리에 다시 여는 탭이 나타남
 
@@ -38,7 +37,7 @@ export function AppLayout() {
 
   return (
     <div className="app-shell">
-      {/* [수정] sidebarCollapsed 전달 추가 - 헤더 로고 영역 너비를 사이드바와 맞추기 위함 */}
+      {/* sidebarCollapsed 전달 - 헤더 로고 영역 너비를 사이드바와 맞추기 위함 */}
       <Header
         sidebarCollapsed={sidebarCollapsed}
         onToggleSidebar={() => setSidebarCollapsed((collapsed) => !collapsed)}

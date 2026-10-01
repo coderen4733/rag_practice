@@ -1,6 +1,5 @@
-// [수정] 새 파일 추가 - 안내 메시지 / 빈 목록 / 로딩 표시 부품
-//  - 기존: 없음
-//  - 변경: 여러 화면에서 반복되는 "상태 표시" 화면 조각을 모아둠
+// 안내 메시지 / 빈 목록 / 로딩 표시 부품
+//  - 여러 화면에서 반복되는 "상태 표시" 화면 조각을 모아둠
 
 import type { ReactNode } from "react";
 import { CircleAlert, CircleCheck, Info, LoaderCircle, TriangleAlert } from "lucide-react";

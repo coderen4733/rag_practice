@@ -1,6 +1,5 @@
-// [수정] 새 파일 추가 - 대시보드 (로그인 후 첫 화면)
-//  - 기존: 없음
-//  - 변경: 문서 수, 처리 상태, 승인 대기 사용자 수, 최근 문서, 서버 상태, RAG 진행 단계를 한눈에 보여줌
+//  * 대시보드 (로그인 후 첫 화면)
+//  - 문서 수, 처리 상태, 승인 대기 사용자 수, 최근 문서, 서버 상태, RAG 진행 단계를 한눈에 보여줌
 //    - 여러 API를 동시에 호출하고(Promise.allSettled), 일부가 실패해도 나머지는 표시함
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
@@ -39,8 +38,11 @@ interface DashboardStats {
 const ROADMAP = [
   { label: "① 계정·권한 관리", done: true },
   { label: "② 문서 등록 (청크 분할 · 임베딩 · Vector DB 저장)", done: true },
-  { label: "③ 문서 검색 (유사도 검색)", done: false },
-  { label: "④ 챗봇 (문서 근거 답변)", done: false },
+  // ③ 문서 검색 완료 표시 (기존: done: false)
+  { label: "③ 문서 검색 (유사도 검색)", done: true },
+  // ④ 챗봇을 두 단계로 나눠 표시 (기존: "④ 챗봇 (문서 근거 답변)" 하나, 준비중)
+  { label: "④-1 챗봇 (문서 근거 답변 · 스트리밍)", done: true },
+  { label: "④-2 대화 이어가기 · 대화 이력", done: false },
   { label: "⑤ AI 에이전트", done: false },
 ];
 
